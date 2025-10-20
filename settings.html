@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -246,6 +246,9 @@
         details summary:hover {
             background: var(--color-platinum);
         }
+        details[open] summary .fa-chevron-down {
+            transform: rotate(180deg);
+        }
     </style>
 </head>
 <body>
@@ -445,34 +448,43 @@ Your rewrite prompt here..."></textarea>
                     </div>
                 </div>
             </details>
-            <div class="form-group">
-                <label class="form-label">Optimize Content Template</label>
-                <textarea id="prompt-optimize" class="form-input font-mono text-sm" rows="5" placeholder="Enter optimize prompt template..."></textarea>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Suggestions Template</label>
-                <textarea id="prompt-suggest" class="form-input font-mono text-sm" rows="7" placeholder="Enter suggestions prompt template..."></textarea>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Adjust Tone Template</label>
-                <textarea id="prompt-tone" class="form-input font-mono text-sm" rows="5" placeholder="Enter tone prompt template..."></textarea>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Generate Subject Template</label>
-                <textarea id="prompt-subject" class="form-input font-mono text-sm" rows="5" placeholder="Enter subject prompt template..."></textarea>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Rewrite Spam Words Template</label>
-                <textarea id="prompt-rewrite" class="form-input font-mono text-sm" rows="10" placeholder="Enter rewrite spam words template..."></textarea>
-            </div>
-            <div class="flex gap-2">
-                <button id="save-prompt-templates" class="btn btn-primary">
-                    <i class="fas fa-save mr-2"></i> Save Prompt Templates
-                </button>
-                <button id="reset-prompt-templates" class="btn btn-secondary">
-                    <i class="fas fa-undo mr-2"></i> Reset to Defaults
-                </button>
-            </div>
+            
+            <details class="border-2 rounded-xl" style="border-color: var(--color-platinum);">
+                <summary class="cursor-pointer text-lg font-bold p-5 flex items-center justify-between list-none" style="color: var(--color-text);">
+                    <span class="flex items-center"><i class="fas fa-cogs mr-3" style="color: var(--color-text-muted);"></i> Advanced: Edit Individual Prompts</span>
+                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                </summary>
+                <div class="p-5 border-t-2" style="border-color: var(--color-platinum);">
+                    <div class="form-group">
+                        <label class="form-label">Optimize Content Template</label>
+                        <textarea id="prompt-optimize" class="form-input font-mono text-sm" rows="5" placeholder="Enter optimize prompt template..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Suggestions Template</label>
+                        <textarea id="prompt-suggest" class="form-input font-mono text-sm" rows="7" placeholder="Enter suggestions prompt template..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Adjust Tone Template</label>
+                        <textarea id="prompt-tone" class="form-input font-mono text-sm" rows="5" placeholder="Enter tone prompt template..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Generate Subject Template</label>
+                        <textarea id="prompt-subject" class="form-input font-mono text-sm" rows="5" placeholder="Enter subject prompt template..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Rewrite Spam Words Template</label>
+                        <textarea id="prompt-rewrite" class="form-input font-mono text-sm" rows="10" placeholder="Enter rewrite spam words template..."></textarea>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="save-prompt-templates" class="btn btn-primary">
+                            <i class="fas fa-save mr-2"></i> Save Prompt Templates
+                        </button>
+                        <button id="reset-prompt-templates" class="btn btn-secondary">
+                            <i class="fas fa-undo mr-2"></i> Reset to Defaults
+                        </button>
+                    </div>
+                </div>
+            </details>
         </div>
         <!-- Email Signature Section -->
         <div class="settings-section">
