@@ -374,6 +374,11 @@
                 </div>
             </div>
             <div class="form-group">
+                <label for="num-subjects" class="form-label">Number of Subject Lines to Generate</label>
+                <input type="number" id="num-subjects" class="form-input" min="5" max="20" step="1" value="10" style="max-width: 120px;">
+                <p class="text-sm text-slate-500 mt-1">Choose how many subject line options the AI should create (5-20).</p>
+            </div>
+            <div class="form-group">
                 <label class="form-label">Custom System Prompt</label>
                 <textarea id="system-prompt" class="form-input" rows="4" placeholder="Enter custom system prompt for AI (optional)">You are an expert email marketing assistant. Help users create professional, engaging, and spam-filter-friendly emails.</textarea>
                 <p class="text-sm text-slate-500 mt-1">Customize how the AI responds to your requests</p>
@@ -422,7 +427,7 @@
         <!-- AI Prompt Templates Section -->
         <div class="settings-section">
             <h2><i class="fas fa-file-code mr-2"></i> AI Prompt Templates</h2>
-            <p class="text-sm text-slate-500 mb-3">Use placeholders like {systemPrompt}, {content}, {tone}, {terms}, {subjectLine}. These will be replaced before sending to AI.</p>
+            <p class="text-sm text-slate-500 mb-3">Use placeholders like {systemPrompt}, {content}, {tone}, {terms}, {subjectLine}, {numSubjects}. These will be replaced before sending to AI.</p>
             
             <!-- Bulk Prompt Management -->
             <div class="rounded-xl p-5 mb-6 border-2 shadow-lg" style="background: linear-gradient(135deg, #f5f0ff 0%, white 100%); border-color: var(--color-blue-violet);">
@@ -494,6 +499,9 @@ Your rewrite prompt here..."></textarea>
                     </div>
                     <div>
                         <span class="font-semibold text-slate-800">{subjectLine}</span> – The current subject line from the preview section.
+                    </div>
+                    <div>
+                        <span class="font-semibold text-slate-800">{numSubjects}</span> – The number of subject lines to generate, from your settings.
                     </div>
                     <div class="pt-2 border-t border-slate-200">
                         <span class="font-semibold text-slate-800">Tips</span>
@@ -590,6 +598,10 @@ Your rewrite prompt here..."></textarea>
                 const systemPrompt = localStorage.getItem('system-prompt') || 'You are an expert email marketing assistant. Help users create professional, engaging, and spam-filter-friendly emails.';
                 document.getElementById('gemini-api-key').value = geminiApiKey;
                 document.getElementById('system-prompt').value = systemPrompt;
+
+                // Load number of subjects
+                const numSubjects = localStorage.getItem('num-subjects') || '10';
+                document.getElementById('num-subjects').value = numSubjects;
 
                 // Load temperature mode and values
                 const tempMode = localStorage.getItem('ai-temperature-mode') || 'normal';
@@ -743,7 +755,7 @@ Rewrite the provided email content to match a {tone} tone, ensuring the core mes
                     subject: `{systemPrompt}
 
 ### GOAL
-Generate 5 compelling, high-converting subject lines for the provided email content.
+Generate {numSubjects} compelling, high-converting subject lines for the provided email content.
 
 ### INSTRUCTIONS
 - Analyze the email's core value proposition.
@@ -751,7 +763,7 @@ Generate 5 compelling, high-converting subject lines for the provided email cont
 - If the original subject uses variables like {{company_name}}, you may use them in your suggestions.
 
 ### OUTPUT FORMAT
-Return only the 5 subject lines, one per line. Do not use numbers, bullets, or any extra text.
+Return only the {numSubjects} subject lines, one per line. Do not use numbers, bullets, or any extra text.
 
 ### EMAIL CONTEXT
 Current Subject: {subjectLine}
@@ -1017,6 +1029,10 @@ ${prompts.rewrite}`;
                 
                 localStorage.setItem('gemini-api-key', apiKey);
                 localStorage.setItem('system-prompt', prompt);
+                
+                // Save number of subjects
+                const numSubjects = document.getElementById('num-subjects').value;
+                localStorage.setItem('num-subjects', numSubjects);
 
                 // Save temperature settings
                 const tempMode = document.querySelector('input[name="temp-mode"]:checked').value;
@@ -1175,6 +1191,7 @@ ${prompts.rewrite}`;
                     localStorage.removeItem('system-prompt');
                     localStorage.removeItem('custom-spam-words');
                     localStorage.removeItem('email-signature');
+                    localStorage.removeItem('num-subjects');
                     
                     // Reset temperature settings
                     localStorage.removeItem('ai-temperature-mode');

@@ -28,7 +28,7 @@ const CONSTANTS = {
     MAX_TEMPLATE_NAME_LENGTH: 100,
     MAX_SUBJECT_LINE_LENGTH: 60,
     MIN_SUBJECT_LINE_LENGTH: 5,
-    MAX_SUBJECT_LINES: 5,
+    MAX_SUBJECT_LINES: 20,
     
     // AI Model
     DEFAULT_AI_MODEL: 'gemini-2.5-flash-lite',
@@ -319,4 +319,3 @@ const EmailEditorUtils = {
 
 // Make utilities available globally
 window.EmailEditorUtils = EmailEditorUtils;
-
