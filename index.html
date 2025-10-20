@@ -1180,13 +1180,26 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                 return this.defaultPromptTemplates[key] || '';
             },
 
-            initGeminiClient() {
+            initGeminiClient(featureKey) {
                 const apiKey = localStorage.getItem('gemini-api-key');
                 if (!apiKey) throw new Error('No Gemini API key found');
-                
+
                 const genAI = new window.GoogleGenerativeAI(apiKey);
-                const temperature = parseFloat(localStorage.getItem('ai-temperature') || '1.0');
-                return genAI.getGenerativeModel({ 
+
+                const mode = localStorage.getItem('ai-temperature-mode') || 'normal';
+                let tempKey;
+                if (mode === 'advanced' && featureKey) {
+                    tempKey = `ai-temperature-${featureKey}`;
+                } else {
+                    tempKey = 'ai-temperature';
+                }
+
+                // Fallback chain: specific advanced temp -> global temp -> default 1.0
+                const temperature = parseFloat(
+                    localStorage.getItem(tempKey) || localStorage.getItem('ai-temperature') || '1.0'
+                );
+
+                return genAI.getGenerativeModel({
                     model: "gemini-2.5-flash-lite",
                     generationConfig: {
                         temperature: temperature,
@@ -1836,7 +1849,7 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                     const tpl = this.getPromptTemplate('optimize');
                     const fullPrompt = this.renderPrompt(tpl, { systemPrompt, content });
                     
-                    const model = this.initGeminiClient();
+                    const model = this.initGeminiClient('optimize');
                     const result = await model.generateContent(fullPrompt);
                     const text = this.extractAIText(result);
                     if (!text) throw new Error('Invalid response format from AI');
@@ -1865,7 +1878,7 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                     const tpl = this.getPromptTemplate('suggest');
                     const fullPrompt = this.renderPrompt(tpl, { systemPrompt, content });
                     
-                    const model = this.initGeminiClient();
+                    const model = this.initGeminiClient('suggest');
                     const result = await model.generateContent(fullPrompt);
                     const text = this.extractAIText(result);
                     if (!text) throw new Error('Invalid response format from AI');
@@ -1926,7 +1939,7 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                     const tpl = this.getPromptTemplate('tone');
                     const fullPrompt = this.renderPrompt(tpl, { systemPrompt, content, tone });
                     
-                    const model = this.initGeminiClient();
+                    const model = this.initGeminiClient('tone');
                     const result = await model.generateContent(fullPrompt);
                     const text = this.extractAIText(result);
                     if (!text) throw new Error('Invalid response format from AI');
@@ -1957,7 +1970,7 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                     const tpl = this.getPromptTemplate('subject');
                     const fullPrompt = this.renderPrompt(tpl, { systemPrompt, content, subjectLine: currentSubject });
                     
-                    const model = this.initGeminiClient();
+                    const model = this.initGeminiClient('subject');
                     const result = await model.generateContent(fullPrompt);
                     const text = this.extractAIText(result);
                     if (!text) throw new Error('Invalid response format from AI');
@@ -2825,7 +2838,7 @@ Your responses must always be:
                 const tpl = this.getPromptTemplate('rewrite');
                 const fullPrompt = this.renderPrompt(tpl, { systemPrompt, content, terms: JSON.stringify(terms) });
                 
-                const model = this.initGeminiClient();
+                const model = this.initGeminiClient('rewrite');
                 const result = await model.generateContent(fullPrompt);
                 const text = this.extractAIText(result) || '';
                 const mapping = this.parseReplacementMapping(text);
@@ -3153,4 +3166,3 @@ Your responses must always be:
     </script>
 </body>
 </html>
-

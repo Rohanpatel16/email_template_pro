@@ -299,19 +299,79 @@
                 <p class="text-sm text-slate-500 mt-1">Using Gemini 2.5 Flash-Lite for optimal performance and cost efficiency</p>
             </div>
             <div class="form-group">
-                <label class="form-label">AI Temperature (Creativity Level)</label>
-                <div class="flex items-center gap-4">
-                    <input type="range" id="ai-temperature" class="flex-1" min="0" max="2" step="0.1" value="1.0" style="accent-color: var(--color-blue-violet);">
-                    <span id="temperature-value" class="text-lg font-bold" style="color: var(--color-blue-violet); min-width: 3rem;">1.0</span>
+                <label class="form-label">Temperature Mode</label>
+                <div class="flex items-center gap-4 p-2 rounded-lg bg-slate-50 border border-slate-200" style="width: fit-content;">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="radio" name="temp-mode" value="normal" class="mr-2" checked>
+                        <span class="font-medium">Normal (Global)</span>
+                    </label>
+                    <label class="flex items-center cursor-pointer">
+                        <input type="radio" name="temp-mode" value="advanced" class="mr-2">
+                        <span class="font-medium">Advanced (Per-Feature)</span>
+                    </label>
                 </div>
-                <div class="flex justify-between text-xs mt-2" style="color: var(--color-text-muted);">
-                    <span>⚡ 0.0 - Precise</span>
-                    <span>🎯 1.0 - Balanced</span>
-                    <span>🎨 2.0 - Creative</span>
+            </div>
+            <div id="normal-temp-container">
+                <div class="form-group">
+                    <label class="form-label">Global AI Temperature (Creativity Level)</label>
+                    <div class="flex items-center gap-4">
+                        <input type="range" id="ai-temperature" class="flex-1" min="0" max="2" step="0.1" value="1.0" style="accent-color: var(--color-blue-violet);">
+                        <span id="temperature-value" class="text-lg font-bold" style="color: var(--color-blue-violet); min-width: 3rem;">1.0</span>
+                    </div>
+                    <div class="flex justify-between text-xs mt-2" style="color: var(--color-text-muted);">
+                        <span>⚡ 0.0 - Precise</span>
+                        <span>🎯 1.0 - Balanced</span>
+                        <span>🎨 2.0 - Creative</span>
+                    </div>
+                    <p class="text-sm text-slate-500 mt-2">
+                        Lower values (0.0-0.5) make output more focused and deterministic. Higher values (1.5-2.0) make it more creative and varied. Default: 1.0
+                    </p>
                 </div>
-                <p class="text-sm text-slate-500 mt-2">
-                    Lower values (0.0-0.5) make output more focused and deterministic. Higher values (1.5-2.0) make it more creative and varied. Default: 1.0
-                </p>
+            </div>
+            <div id="advanced-temp-container" class="hidden">
+                <div class="form-group p-4 rounded-xl border-2 shadow-inner" style="background: linear-gradient(135deg, #f5f0ff 0%, white 100%); border-color: var(--color-blue-violet);">
+                    <h3 class="font-bold mb-4 text-lg" style="color: var(--color-text);">Advanced Temperature Settings</h3>
+                    <!-- Optimize -->
+                    <div class="mb-4">
+                        <label class="form-label font-semibold"><i class="fas fa-wand-magic-sparkles mr-2" style="color: var(--color-blue-violet);"></i>Optimize Content</label>
+                        <div class="flex items-center gap-4">
+                            <input type="range" id="ai-temperature-optimize" class="flex-1" min="0" max="2" step="0.1" value="1.0" style="accent-color: var(--color-blue-violet);">
+                            <span id="temperature-value-optimize" class="font-bold" style="color: var(--color-blue-violet); min-width: 3rem;">1.0</span>
+                        </div>
+                    </div>
+                    <!-- Suggest -->
+                    <div class="mb-4">
+                        <label class="form-label font-semibold"><i class="fas fa-lightbulb mr-2" style="color: var(--color-blue-violet);"></i>Get Suggestions</label>
+                        <div class="flex items-center gap-4">
+                            <input type="range" id="ai-temperature-suggest" class="flex-1" min="0" max="2" step="0.1" value="1.0" style="accent-color: var(--color-blue-violet);">
+                            <span id="temperature-value-suggest" class="font-bold" style="color: var(--color-blue-violet); min-width: 3rem;">1.0</span>
+                        </div>
+                    </div>
+                    <!-- Tone -->
+                    <div class="mb-4">
+                        <label class="form-label font-semibold"><i class="fas fa-palette mr-2" style="color: var(--color-carrot-orange);"></i>Adjust Tone</label>
+                        <div class="flex items-center gap-4">
+                            <input type="range" id="ai-temperature-tone" class="flex-1" min="0" max="2" step="0.1" value="1.0" style="accent-color: var(--color-carrot-orange);">
+                            <span id="temperature-value-tone" class="font-bold" style="color: var(--color-carrot-orange); min-width: 3rem;">1.0</span>
+                        </div>
+                    </div>
+                    <!-- Subject -->
+                    <div class="mb-4">
+                        <label class="form-label font-semibold"><i class="fas fa-heading mr-2" style="color: var(--color-carrot-orange);"></i>Generate Subject</label>
+                        <div class="flex items-center gap-4">
+                            <input type="range" id="ai-temperature-subject" class="flex-1" min="0" max="2" step="0.1" value="1.0" style="accent-color: var(--color-carrot-orange);">
+                            <span id="temperature-value-subject" class="font-bold" style="color: var(--color-carrot-orange); min-width: 3rem;">1.0</span>
+                        </div>
+                    </div>
+                    <!-- Rewrite -->
+                    <div>
+                        <label class="form-label font-semibold"><i class="fas fa-broom mr-2" style="color: var(--color-poppy);"></i>Rewrite Spam Words</label>
+                        <div class="flex items-center gap-4">
+                            <input type="range" id="ai-temperature-rewrite" class="flex-1" min="0" max="2" step="0.1" value="1.0" style="accent-color: var(--color-poppy);">
+                            <span id="temperature-value-rewrite" class="font-bold" style="color: var(--color-poppy); min-width: 3rem;">1.0</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="form-group">
                 <label class="form-label">Custom System Prompt</label>
@@ -516,20 +576,35 @@ Your rewrite prompt here..."></textarea>
     <script>
         // Settings Manager
         const SettingsManager = {
+            advancedTempFeatures: ['optimize', 'suggest', 'tone', 'subject', 'rewrite'],
+            
             init() {
                 this.loadSettings();
                 this.bindEvents();
+                this.initTempModeSelector();
             },
 
             loadSettings() {
                 // Load Gemini API Configuration
                 const geminiApiKey = localStorage.getItem('gemini-api-key') || '';
                 const systemPrompt = localStorage.getItem('system-prompt') || 'You are an expert email marketing assistant. Help users create professional, engaging, and spam-filter-friendly emails.';
-                const aiTemperature = localStorage.getItem('ai-temperature') || '1.0';
                 document.getElementById('gemini-api-key').value = geminiApiKey;
                 document.getElementById('system-prompt').value = systemPrompt;
-                document.getElementById('ai-temperature').value = aiTemperature;
-                document.getElementById('temperature-value').textContent = aiTemperature;
+
+                // Load temperature mode and values
+                const tempMode = localStorage.getItem('ai-temperature-mode') || 'normal';
+                document.querySelector(`input[name="temp-mode"][value="${tempMode}"]`).checked = true;
+                this.toggleTempModeView(tempMode);
+
+                const globalTemp = localStorage.getItem('ai-temperature') || '1.0';
+                document.getElementById('ai-temperature').value = globalTemp;
+                document.getElementById('temperature-value').textContent = globalTemp;
+                
+                this.advancedTempFeatures.forEach(feature => {
+                    const temp = localStorage.getItem(`ai-temperature-${feature}`) || '1.0';
+                    document.getElementById(`ai-temperature-${feature}`).value = temp;
+                    document.getElementById(`temperature-value-${feature}`).textContent = temp;
+                });
 
                 // Load custom spam words
                 this.loadCustomSpamWords();
@@ -552,10 +627,16 @@ Your rewrite prompt here..."></textarea>
                 document.getElementById('save-ai-config').addEventListener('click', () => this.saveAIConfig());
                 document.getElementById('toggle-api-key').addEventListener('click', () => this.toggleApiKeyVisibility());
                 
-                // Temperature slider update
+                // Temperature sliders update
                 document.getElementById('ai-temperature').addEventListener('input', (e) => {
                     document.getElementById('temperature-value').textContent = e.target.value;
                 });
+                this.advancedTempFeatures.forEach(feature => {
+                    document.getElementById(`ai-temperature-${feature}`).addEventListener('input', (e) => {
+                        document.getElementById(`temperature-value-${feature}`).textContent = e.target.value;
+                    });
+                });
+
                 // Prompt Templates
                 document.getElementById('save-prompt-templates').addEventListener('click', () => this.savePromptTemplates());
                 document.getElementById('reset-prompt-templates').addEventListener('click', () => this.resetPromptTemplates());
@@ -582,6 +663,23 @@ Your rewrite prompt here..."></textarea>
                 // Reset Settings
                 document.getElementById('reset-all-settings').addEventListener('click', () => this.resetAllSettings());
             },
+
+            initTempModeSelector() {
+                document.querySelectorAll('input[name="temp-mode"]').forEach(radio => {
+                    radio.addEventListener('change', (e) => this.toggleTempModeView(e.target.value));
+                });
+            },
+
+            toggleTempModeView(mode) {
+                if (mode === 'advanced') {
+                    document.getElementById('normal-temp-container').classList.add('hidden');
+                    document.getElementById('advanced-temp-container').classList.remove('hidden');
+                } else {
+                    document.getElementById('normal-temp-container').classList.remove('hidden');
+                    document.getElementById('advanced-temp-container').classList.add('hidden');
+                }
+            },
+            
             getDefaultPromptTemplates() {
                 return {
                     optimize: `{systemPrompt}
@@ -911,7 +1009,6 @@ ${prompts.rewrite}`;
             saveAIConfig() {
                 const apiKey = document.getElementById('gemini-api-key').value.trim();
                 const prompt = document.getElementById('system-prompt').value;
-                const temperature = document.getElementById('ai-temperature').value;
                 
                 if (!apiKey) {
                     this.showNotification('Please enter your Gemini API key', 'error');
@@ -920,7 +1017,21 @@ ${prompts.rewrite}`;
                 
                 localStorage.setItem('gemini-api-key', apiKey);
                 localStorage.setItem('system-prompt', prompt);
-                localStorage.setItem('ai-temperature', temperature);
+
+                // Save temperature settings
+                const tempMode = document.querySelector('input[name="temp-mode"]:checked').value;
+                localStorage.setItem('ai-temperature-mode', tempMode);
+
+                if (tempMode === 'normal') {
+                    const temperature = document.getElementById('ai-temperature').value;
+                    localStorage.setItem('ai-temperature', temperature);
+                } else {
+                    this.advancedTempFeatures.forEach(feature => {
+                        const temp = document.getElementById(`ai-temperature-${feature}`).value;
+                        localStorage.setItem(`ai-temperature-${feature}`, temp);
+                    });
+                }
+                
                 this.showNotification('Gemini configuration saved successfully!');
             },
 
@@ -1064,6 +1175,14 @@ ${prompts.rewrite}`;
                     localStorage.removeItem('system-prompt');
                     localStorage.removeItem('custom-spam-words');
                     localStorage.removeItem('email-signature');
+                    
+                    // Reset temperature settings
+                    localStorage.removeItem('ai-temperature-mode');
+                    localStorage.removeItem('ai-temperature');
+                    this.advancedTempFeatures.forEach(feature => {
+                        localStorage.removeItem(`ai-temperature-${feature}`);
+                    });
+
                     this.loadSettings();
                     this.showNotification('All settings have been reset to defaults!');
                 }
