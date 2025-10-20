@@ -649,9 +649,18 @@
                     
                     <!-- AI Enhancement Panel -->
                     <div class="mt-6 p-5 rounded-xl border-2 shadow-lg transition-all" style="background: linear-gradient(135deg, #f5f0ff 0%, white 100%); border-color: var(--color-blue-violet);">
-                        <h3 class="text-lg font-semibold mb-4 flex items-center" style="color: var(--color-text);">
-                            <i class="fas fa-magic mr-2" style="color: var(--color-blue-violet);"></i>AI-Powered Enhancements
-                        </h3>
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold flex items-center" style="color: var(--color-text);">
+                                <i class="fas fa-magic mr-2" style="color: var(--color-blue-violet);"></i>AI-Powered Enhancements
+                            </h3>
+                            <div id="ai-request-limiter" class="text-sm flex items-center gap-2">
+                                <span style="color: var(--color-text-muted);">Today's AI Requests:</span>
+                                <span id="ai-request-count" class="font-bold text-base px-2 py-1 rounded-lg" style="color: var(--color-blue-violet); background: var(--color-light-bg); border: 1px solid var(--color-platinum);">0</span>
+                                <button id="reset-request-count" class="text-xs rounded-lg transition-all hover:bg-slate-300" title="Reset Count" style="background: var(--color-platinum); color: var(--color-text-muted); width: 1.75rem; height: 1.75rem; display: inline-flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <button id="ai-optimize-btn" class="text-white px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center justify-center hover:shadow-lg hover:-translate-y-0.5" style="background: var(--color-blue-violet);">
                                 <i class="fas fa-wand-magic-sparkles mr-2"></i>Optimize Content
@@ -1250,6 +1259,7 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                 this.initKeyboardShortcuts();
                 this.initHelpModal();
                 this.loadCustomSpamWords();
+                this.initRequestCounter();
                 
                 // Load previous work or use defaults
                 this.loadFromLocalStorage();
@@ -1833,6 +1843,47 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
             getDefaultHtml() {
                 return `Hello {{name}},<br><br>My name is Rohan from TIGI HR.<br><br>I noticed you're hiring for key AI roles and thought I'd share how leaders like <b>Quest Global, PubMatic, and Shadi.com</b> are accelerating their AI hiring.<br><br>Instead of spending weeks filtering through candidates who only have buzzwords on their resumes, they receive a pre-vetted shortlist of top-tier AI/ML professionals from us in just <b>48-72 hours</b>.<br><br>This allows them to focus their time on what matters: conducting high-quality technical interviews.<br><br>Would you be open to a brief chat about adopting this strategy at {{company_name}}?<br><br>For more details:<br>Our Company Profile: <a href="http://tigihr.com/company_profile" style="color: #3b82f6; text-decoration: underline;">tigihr.com/company_profile</a><br>Our Service Charges: <a href="http://tigihr.com/charges" style="color: #3b82f6; text-decoration: underline;">tigihr.com/charges</a><br><br>Best,<br><br><b>Rohan Patel | +91 7490017176</b><br><b>Business Development Manager</b><br><br><b>TIGI HR SOLUTION PVT. LTD.</b><br><b>Website:</b> <a href="http://www.tigihr.com/" style="color: #3b82f6; text-decoration: underline;">http://www.tigihr.com/</a>`;
             },
+            
+            // AI Request Counter
+            getRequestCounterKey() {
+                // Use local date to ensure reset happens at midnight in the user's timezone
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0'); // JS months are 0-indexed
+                const day = String(now.getDate()).padStart(2, '0');
+                return `ai-request-count-${year}-${month}-${day}`;
+            },
+            getRequestCount() {
+                return parseInt(localStorage.getItem(this.getRequestCounterKey()) || '0', 10);
+            },
+            incrementRequestCount() {
+                const key = this.getRequestCounterKey();
+                const currentCount = this.getRequestCount();
+                localStorage.setItem(key, currentCount + 1);
+                this.updateRequestCounterDisplay();
+            },
+            resetRequestCount() {
+                if (confirm('Are you sure you want to reset the daily AI request counter?')) {
+                    const key = this.getRequestCounterKey();
+                    localStorage.setItem(key, 0);
+                    this.updateRequestCounterDisplay();
+                    this.showNotification('Request counter has been reset.');
+                }
+            },
+            updateRequestCounterDisplay() {
+                const count = this.getRequestCount();
+                const counterElement = document.getElementById('ai-request-count');
+                if (counterElement) {
+                    counterElement.textContent = count;
+                }
+            },
+            initRequestCounter() {
+                this.updateRequestCounterDisplay();
+                const resetButton = document.getElementById('reset-request-count');
+                if (resetButton) {
+                    resetButton.addEventListener('click', () => this.resetRequestCount());
+                }
+            },
 
             // AI Enhancement Methods
             async optimizeWithAI() {
@@ -1843,6 +1894,7 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                 }
 
                 if (!this.aiReady()) return;
+                this.incrementRequestCount();
                 this.showAILoading();
                 try {
                     const systemPrompt = localStorage.getItem('system-prompt') || '';
@@ -1872,6 +1924,7 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                 }
 
                 if (!this.aiReady()) return;
+                this.incrementRequestCount();
                 this.showAILoading();
                 try {
                     const systemPrompt = localStorage.getItem('system-prompt') || '';
@@ -1933,6 +1986,7 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                 const content = this.nodes.htmlInput.value;
 
                 if (!this.aiReady()) return;
+                this.incrementRequestCount();
                 this.showAILoading();
                 try {
                     const systemPrompt = localStorage.getItem('system-prompt') || '';
@@ -1962,6 +2016,7 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                 }
 
                 if (!this.aiReady()) return;
+                this.incrementRequestCount();
                 this.showAILoading();
                 try {
                     const systemPrompt = localStorage.getItem('system-prompt') || '';
@@ -2327,7 +2382,7 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                     .replace(/`(.*?)`/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">$1</code>');
             },
 
-            parseSubjectLines(text) {
+            parseSubjectLines(content) {
                 if (!text) return [];
                 
                 const lines = text.split('\n').filter(line => line.trim());
@@ -2833,6 +2888,7 @@ Your responses must always be:
             const content = this.nodes.htmlInput.value;
 
             if (!this.aiReady()) return;
+            this.incrementRequestCount();
             this.showAILoading();
             try {
                 const systemPrompt = localStorage.getItem('system-prompt') || '';
@@ -2892,10 +2948,10 @@ Your responses must always be:
                 }
             } catch (error) {
                 const errorMsg = error.message?.includes('API') || error.message?.includes('key')
-                    ? 'Invalid API key or quota exceeded. Please check your Gemini API key in Settings.'
-                    : error.message?.includes('network') || error.message?.includes('fetch')
-                    ? 'Network error. Please check your internet connection and try again.'
-                    : `Failed to rewrite spam words: ${error.message || 'Unknown error'}. Try with fewer terms.`;
+                        ? 'Invalid API key or quota exceeded. Please check your Gemini API key in Settings.'
+                        : error.message?.includes('network') || error.message?.includes('fetch')
+                        ? 'Network error. Please check your internet connection and try again.'
+                        : `Failed to rewrite spam words: ${error.message || 'Unknown error'}. Try with fewer terms.`;
                 this.showAIError(errorMsg, error);
             }
         };
