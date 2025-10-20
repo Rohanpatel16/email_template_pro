@@ -16,8 +16,8 @@
         }
     </script>
     <script type="module">
-        import { GoogleGenerativeAI } from "@google/generative-ai";
-        window.GoogleGenerativeAI = GoogleGenerativeAI;
+        import { GoogleGenAI } from "@google/generative-ai";
+        window.GoogleGenAI = GoogleGenAI;
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
@@ -1171,7 +1171,7 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                     this.showAIError('You are offline. Check your internet connection.');
                     return false;
                 }
-                if (!window.GoogleGenerativeAI) {
+                if (!window.GoogleGenAI) {
                     this.showAIError('Gemini AI library is not loaded. Please refresh the page.');
                     return false;
                 }
@@ -1189,34 +1189,6 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                 return this.defaultPromptTemplates[key] || '';
             },
 
-            initGeminiClient(featureKey) {
-                const apiKey = localStorage.getItem('gemini-api-key');
-                if (!apiKey) throw new Error('No Gemini API key found');
-
-                const genAI = new window.GoogleGenerativeAI(apiKey);
-
-                const mode = localStorage.getItem('ai-temperature-mode') || 'normal';
-                let tempKey;
-                if (mode === 'advanced' && featureKey) {
-                    tempKey = `ai-temperature-${featureKey}`;
-                } else {
-                    tempKey = 'ai-temperature';
-                }
-
-                // Fallback chain: specific advanced temp -> global temp -> default 1.0
-                const temperature = parseFloat(
-                    localStorage.getItem(tempKey) || localStorage.getItem('ai-temperature') || '1.0'
-                );
-
-                return genAI.getGenerativeModel({
-                    model: "gemini-2.5-flash-lite",
-                    generationConfig: {
-                        temperature: temperature,
-                        thinkingConfig: { thinkingBudget: 0 }
-                    }
-                });
-            },
-
             renderPrompt(template, variables) {
                 if (!template) return '';
                 let result = template.replace(/\{(\w+)\}/g, (m, k) => {
@@ -1231,25 +1203,6 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                 }
                 
                 return result;
-            },
-
-            extractAIText(response) {
-                try {
-                    if (!response) return null;
-                    
-                    // Gemini response format
-                    if (response.response && response.response.text) {
-                        return response.response.text();
-                    }
-                    
-                    // Fallback for other formats
-                    if (typeof response === 'string') return response;
-                    
-                    return null;
-                } catch (error) {
-                    console.error('Error extracting AI text:', error);
-                    return null;
-                }
             },
 
             init() {
@@ -1886,34 +1839,56 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
             },
 
             // AI Enhancement Methods
+            async callGeminiAPI(featureKey, prompt) {
+                if (!this.aiReady()) return;
+                this.incrementRequestCount();
+                this.showAILoading();
+                
+                try {
+                    const apiKey = localStorage.getItem('gemini-api-key');
+                    const ai = new window.GoogleGenAI({ apiKey });
+                    
+                    const mode = localStorage.getItem('ai-temperature-mode') || 'normal';
+                    const tempKey = (mode === 'advanced' && featureKey) ? `ai-temperature-${featureKey}` : 'ai-temperature';
+                    const temperature = parseFloat(localStorage.getItem(tempKey) || localStorage.getItem('ai-temperature') || '1.0');
+                    
+                    const config = {
+                        temperature: temperature,
+                        thinkingConfig: { thinkingBudget: 0 }
+                    };
+                    
+                    const result = await ai.models.generateContent({
+                        model: 'gemini-2.5-flash-lite',
+                        contents: prompt,
+                        config,
+                    });
+                    
+                    const text = result.text;
+                    if (!text) throw new Error('Invalid response format from AI');
+                    return text;
+                    
+                } catch (error) {
+                    const errorMsg = error.message?.includes('API') || error.message?.includes('key')
+                        ? 'Invalid API key or quota exceeded. Please check your Gemini API key in Settings.'
+                        : error.message?.includes('network') || error.message?.includes('fetch')
+                        ? 'Network error. Please check your internet connection and try again.'
+                        : `AI request failed: ${error.message || 'Unknown error'}`;
+                    this.showAIError(errorMsg, error);
+                    return null;
+                }
+            },
+
             async optimizeWithAI() {
                 const content = this.nodes.htmlInput.value;
                 if (!content.trim()) {
                     this.showNotification('Please add some content to optimize', 'warning');
                     return;
                 }
-
-                if (!this.aiReady()) return;
-                this.incrementRequestCount();
-                this.showAILoading();
-                try {
-                    const systemPrompt = localStorage.getItem('system-prompt') || '';
-                    const tpl = this.getPromptTemplate('optimize');
-                    const fullPrompt = this.renderPrompt(tpl, { systemPrompt, content });
-                    
-                    const model = this.initGeminiClient('optimize');
-                    const result = await model.generateContent(fullPrompt);
-                    const text = this.extractAIText(result);
-                    if (!text) throw new Error('Invalid response format from AI');
-                    this.showAIResponse(text, 'optimize');
-                } catch (error) {
-                    const errorMsg = error.message?.includes('API') || error.message?.includes('key')
-                        ? 'Invalid API key or quota exceeded. Please check your Gemini API key in Settings.'
-                        : error.message?.includes('network') || error.message?.includes('fetch')
-                        ? 'Network error. Please check your internet connection and try again.'
-                        : `Failed to optimize content: ${error.message || 'Unknown error'}`;
-                    this.showAIError(errorMsg, error);
-                }
+                const systemPrompt = localStorage.getItem('system-prompt') || '';
+                const tpl = this.getPromptTemplate('optimize');
+                const fullPrompt = this.renderPrompt(tpl, { systemPrompt, content });
+                const text = await this.callGeminiAPI('optimize', fullPrompt);
+                if (text) this.showAIResponse(text, 'optimize');
             },
 
             async getAISuggestions() {
@@ -1922,30 +1897,13 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                     this.showNotification('Please add some content to get suggestions', 'warning');
                     return;
                 }
-
-                if (!this.aiReady()) return;
-                this.incrementRequestCount();
-                this.showAILoading();
-                try {
-                    const systemPrompt = localStorage.getItem('system-prompt') || '';
-                    const tpl = this.getPromptTemplate('suggest');
-                    const fullPrompt = this.renderPrompt(tpl, { systemPrompt, content });
-                    
-                    const model = this.initGeminiClient('suggest');
-                    const result = await model.generateContent(fullPrompt);
-                    const text = this.extractAIText(result);
-                    if (!text) throw new Error('Invalid response format from AI');
-                    this.showAIResponse(text, 'suggest');
-                } catch (error) {
-                    const errorMsg = error.message?.includes('API') || error.message?.includes('key')
-                        ? 'Invalid API key or quota exceeded. Please check your Gemini API key in Settings.'
-                        : error.message?.includes('network') || error.message?.includes('fetch')
-                        ? 'Network error. Please check your internet connection and try again.'
-                        : `Failed to get suggestions: ${error.message || 'Unknown error'}`;
-                    this.showAIError(errorMsg, error);
-                }
+                const systemPrompt = localStorage.getItem('system-prompt') || '';
+                const tpl = this.getPromptTemplate('suggest');
+                const fullPrompt = this.renderPrompt(tpl, { systemPrompt, content });
+                const text = await this.callGeminiAPI('suggest', fullPrompt);
+                if (text) this.showAIResponse(text, 'suggest');
             },
-
+            
             async adjustTone() {
                 const content = this.nodes.htmlInput.value;
                 if (!content.trim()) {
@@ -1984,28 +1942,11 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                 
                 this.hideToneModal();
                 const content = this.nodes.htmlInput.value;
-
-                if (!this.aiReady()) return;
-                this.incrementRequestCount();
-                this.showAILoading();
-                try {
-                    const systemPrompt = localStorage.getItem('system-prompt') || '';
-                    const tpl = this.getPromptTemplate('tone');
-                    const fullPrompt = this.renderPrompt(tpl, { systemPrompt, content, tone });
-                    
-                    const model = this.initGeminiClient('tone');
-                    const result = await model.generateContent(fullPrompt);
-                    const text = this.extractAIText(result);
-                    if (!text) throw new Error('Invalid response format from AI');
-                    this.showAIResponse(text, 'tone');
-                } catch (error) {
-                    const errorMsg = error.message?.includes('API') || error.message?.includes('key')
-                        ? 'Invalid API key or quota exceeded. Please check your Gemini API key in Settings.'
-                        : error.message?.includes('network') || error.message?.includes('fetch')
-                        ? 'Network error. Please check your internet connection and try again.'
-                        : `Failed to adjust tone: ${error.message || 'Unknown error'}`;
-                    this.showAIError(errorMsg, error);
-                }
+                const systemPrompt = localStorage.getItem('system-prompt') || '';
+                const tpl = this.getPromptTemplate('tone');
+                const fullPrompt = this.renderPrompt(tpl, { systemPrompt, content, tone });
+                const text = await this.callGeminiAPI('tone', fullPrompt);
+                if (text) this.showAIResponse(text, 'tone');
             },
 
             async generateSubject() {
@@ -2014,31 +1955,15 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                     this.showNotification('Please add some content to generate subject lines', 'warning');
                     return;
                 }
-
-                if (!this.aiReady()) return;
-                this.incrementRequestCount();
-                this.showAILoading();
-                try {
-                    const systemPrompt = localStorage.getItem('system-prompt') || '';
-                    // Pass raw subject line with variables for AI context
-                    const currentSubject = this.nodes.subjectLineInput ? this.nodes.subjectLineInput.value : '';
-                    const numSubjects = localStorage.getItem('num-subjects') || '10';
-                    const tpl = this.getPromptTemplate('subject');
-                    const fullPrompt = this.renderPrompt(tpl, { systemPrompt, content, subjectLine: currentSubject, numSubjects });
-                    
-                    const model = this.initGeminiClient('subject');
-                    const result = await model.generateContent(fullPrompt);
-                    const text = this.extractAIText(result);
-                    if (!text) throw new Error('Invalid response format from AI');
-                    this.showAIResponse(text, 'subject');
-                } catch (error) {
-                    const errorMsg = error.message?.includes('API') || error.message?.includes('key')
-                        ? 'Invalid API key or quota exceeded. Please check your Gemini API key in Settings.'
-                        : error.message?.includes('network') || error.message?.includes('fetch')
-                        ? 'Network error. Please check your internet connection and try again.'
-                        : `Failed to generate subject lines: ${error.message || 'Unknown error'}`;
-                    this.showAIError(errorMsg, error);
-                }
+                
+                const systemPrompt = localStorage.getItem('system-prompt') || '';
+                const currentSubject = this.nodes.subjectLineInput ? this.nodes.subjectLineInput.value : '';
+                const numSubjects = localStorage.getItem('num-subjects') || '10';
+                const tpl = this.getPromptTemplate('subject');
+                const fullPrompt = this.renderPrompt(tpl, { systemPrompt, content, subjectLine: currentSubject, numSubjects });
+                
+                const text = await this.callGeminiAPI('subject', fullPrompt);
+                if (text) this.showAIResponse(text, 'subject');
             },
 
             showAILoading() {
@@ -2383,18 +2308,15 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
             },
 
             parseSubjectLines(content) {
-                if (!text) return [];
-                
-                const lines = text.split('\n').filter(line => line.trim());
+                if (!content) return [];
+                const lines = content.split('\n').filter(line => line.trim());
                 const subjects = [];
-                
                 lines.forEach(line => {
                     const cleanLine = line.replace(/^\d+\.\s*/, '').replace(/^[-*]\s*/, '').trim();
                     if (cleanLine && cleanLine.length > 5 && cleanLine.length < 100) {
                         subjects.push(cleanLine);
                     }
                 });
-                
                 return subjects;
             },
 
@@ -2887,17 +2809,14 @@ Your responses must always be:
             this.hideSpamRewriteModal();
             const content = this.nodes.htmlInput.value;
 
-            if (!this.aiReady()) return;
-            this.incrementRequestCount();
-            this.showAILoading();
+            const systemPrompt = localStorage.getItem('system-prompt') || '';
+            const tpl = this.getPromptTemplate('rewrite');
+            const fullPrompt = this.renderPrompt(tpl, { systemPrompt, content, terms: JSON.stringify(terms) });
+            
+            const text = await this.callGeminiAPI('rewrite', fullPrompt);
+            if (!text) return; // Error handled in callGeminiAPI
+            
             try {
-                const systemPrompt = localStorage.getItem('system-prompt') || '';
-                const tpl = this.getPromptTemplate('rewrite');
-                const fullPrompt = this.renderPrompt(tpl, { systemPrompt, content, terms: JSON.stringify(terms) });
-                
-                const model = this.initGeminiClient('rewrite');
-                const result = await model.generateContent(fullPrompt);
-                const text = this.extractAIText(result) || '';
                 const mapping = this.parseReplacementMapping(text);
                 if (!Array.isArray(mapping) || mapping.length === 0) {
                     throw new Error('No valid replacements returned');
@@ -2947,12 +2866,7 @@ Your responses must always be:
                     this.showNotification('Spam words rewritten successfully');
                 }
             } catch (error) {
-                const errorMsg = error.message?.includes('API') || error.message?.includes('key')
-                        ? 'Invalid API key or quota exceeded. Please check your Gemini API key in Settings.'
-                        : error.message?.includes('network') || error.message?.includes('fetch')
-                        ? 'Network error. Please check your internet connection and try again.'
-                        : `Failed to rewrite spam words: ${error.message || 'Unknown error'}. Try with fewer terms.`;
-                this.showAIError(errorMsg, error);
+                this.showAIError(`Failed to rewrite spam words: ${error.message || 'Unknown error'}. Try with fewer terms.`, error);
             }
         };
 
