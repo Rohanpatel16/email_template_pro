@@ -2383,9 +2383,9 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
             },
 
             parseSubjectLines(content) {
-                if (!text) return [];
+                if (!content) return [];
                 
-                const lines = text.split('\n').filter(line => line.trim());
+                const lines = content.split('\n').filter(line => line.trim());
                 const subjects = [];
                 
                 lines.forEach(line => {
