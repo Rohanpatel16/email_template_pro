@@ -1,0 +1,1089 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Email Template Previewer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Custom Color Palette */
+        :root {
+            --color-black: #080708;
+            --color-carrot-orange: #e89005;
+            --color-poppy: #df2935;
+            --color-blue-violet: #8338ec;
+            --color-platinum: #e6e8e6;
+            --color-platinum-dark: #d0d2d0;
+            --color-white: #ffffff;
+            --color-light-bg: #f8f9fa;
+            
+            /* Semantic colors */
+            --color-primary: var(--color-blue-violet);
+            --color-success: var(--color-carrot-orange);
+            --color-warning: var(--color-poppy);
+            --color-text: var(--color-black);
+            --color-text-muted: #4a4a4a;
+            --color-border: var(--color-platinum);
+            --color-bg: var(--color-light-bg);
+            
+            /* Transitions */
+            --transition-smooth: all 0.3s ease-in-out;
+            --transition-fast: all 0.15s ease-in-out;
+        }
+        
+        * {
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: linear-gradient(135deg, #f8f9fa 0%, var(--color-platinum) 100%);
+            color: var(--color-text);
+            padding-bottom: 2rem;
+        }
+        
+        .settings-section { 
+            background: white; 
+            padding: 2rem; 
+            border-radius: 1rem; 
+            margin-bottom: 1.5rem; 
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            border: 2px solid var(--color-platinum);
+            transition: var(--transition-fast);
+        }
+        .settings-section:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+        
+        .settings-section h2 { 
+            font-size: 1.5rem; 
+            font-weight: 700; 
+            margin-bottom: 1.5rem; 
+            color: var(--color-text);
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-group { margin-bottom: 1.25rem; }
+        
+        .form-label { 
+            display: block; 
+            font-weight: 600; 
+            margin-bottom: 0.5rem; 
+            color: var(--color-text);
+            font-size: 0.875rem;
+        }
+        
+        .form-input { 
+            width: 100%; 
+            padding: 0.75rem 1rem; 
+            border: 2px solid var(--color-platinum); 
+            border-radius: 0.75rem;
+            transition: var(--transition-fast);
+            font-family: inherit;
+            color: var(--color-text);
+            background: white;
+        }
+        
+        .form-input:focus { 
+            outline: none; 
+            border-color: var(--color-blue-violet);
+            box-shadow: 0 0 0 4px rgba(131, 56, 236, 0.1);
+        }
+        
+        .btn { 
+            padding: 0.75rem 1.5rem; 
+            border-radius: 0.75rem; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: var(--transition-fast);
+            border: none;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-primary { 
+            background: var(--color-blue-violet); 
+            color: white;
+        }
+        .btn-primary:hover { 
+            background: #6d2bc5;
+            box-shadow: 0 4px 12px rgba(131, 56, 236, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary { 
+            background: var(--color-platinum); 
+            color: var(--color-text);
+        }
+        .btn-secondary:hover { 
+            background: var(--color-platinum-dark);
+            transform: translateY(-1px);
+        }
+        
+        .btn-danger { 
+            background: var(--color-poppy); 
+            color: white;
+        }
+        .btn-danger:hover { 
+            background: #c71f2a;
+            box-shadow: 0 4px 12px rgba(223, 41, 53, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        .btn-success { 
+            background: var(--color-carrot-orange); 
+            color: white;
+        }
+        .btn-success:hover { 
+            background: #d17f04;
+            box-shadow: 0 4px 12px rgba(232, 144, 5, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        .btn-ghost {
+            background: transparent;
+            color: var(--color-text-muted);
+        }
+        .btn-ghost:hover {
+            color: var(--color-text);
+            background: var(--color-platinum);
+        }
+        
+        .spam-word-item { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 0.75rem 1rem; 
+            background: var(--color-light-bg); 
+            border-radius: 0.75rem; 
+            margin-bottom: 0.75rem;
+            border: 2px solid var(--color-platinum);
+            transition: var(--transition-fast);
+        }
+        .spam-word-item:hover {
+            border-color: var(--color-blue-violet);
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(131, 56, 236, 0.1);
+        }
+        
+        .spam-word-category { 
+            display: inline-block; 
+            padding: 0.375rem 0.75rem; 
+            border-radius: 0.5rem; 
+            font-size: 0.75rem; 
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .category-urgency { background: rgba(223, 41, 53, 0.1); color: var(--color-poppy); border: 1px solid var(--color-poppy); }
+        .category-shady { background: rgba(131, 56, 236, 0.1); color: var(--color-blue-violet); border: 1px solid var(--color-blue-violet); }
+        .category-money { background: rgba(232, 144, 5, 0.1); color: var(--color-carrot-orange); border: 1px solid var(--color-carrot-orange); }
+        .category-overpromise { background: rgba(232, 144, 5, 0.1); color: var(--color-carrot-orange); border: 1px solid var(--color-carrot-orange); }
+        .category-unnatural { background: rgba(230, 232, 230, 0.3); color: var(--color-text-muted); border: 1px solid var(--color-platinum); }
+        
+        .notification { 
+            position: fixed; 
+            top: 5rem; 
+            right: 1.5rem; 
+            padding: 1rem 1.5rem; 
+            background: var(--color-carrot-orange); 
+            color: white; 
+            border-radius: 0.75rem; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15); 
+            z-index: 1000;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: var(--color-platinum);
+            border-radius: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--color-blue-violet);
+            border-radius: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: var(--color-carrot-orange);
+        }
+        
+        textarea.form-input {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        a {
+            color: #0400ff;
+            text-decoration: underline;
+            transition: var(--transition-fast);
+        }
+        a:hover {
+            opacity: 0.8;
+        }
+        
+        details summary {
+            cursor: pointer;
+            user-select: none;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            transition: var(--transition-fast);
+        }
+        details summary:hover {
+            background: var(--color-platinum);
+        }
+    </style>
+</head>
+<body>
+    <!-- Modern Header -->
+    <div class="sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b-2 shadow-sm" style="border-color: var(--color-platinum);">
+        <div class="container mx-auto px-4 md:px-8 py-4 max-w-6xl">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, var(--color-blue-violet) 0%, var(--color-carrot-orange) 100%);">
+                        <i class="fas fa-cog text-white text-lg"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold" style="background: linear-gradient(135deg, var(--color-blue-violet), var(--color-carrot-orange)); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: transparent;">Settings</h1>
+                </div>
+                <div class="flex items-center gap-2">
+                <a href="index.html" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Editor
+                </a>
+                <a href="templates.html" class="btn btn-ghost">
+                        <i class="fas fa-database mr-2"></i> Templates
+                </a>
+            </div>
+        </div>
+        </div>
+    </div>
+    
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        <div style="margin-bottom: 2rem;"></div>
+        <!-- Gemini API Configuration Section -->
+        <div class="settings-section">
+            <h2><i class="fas fa-robot mr-2"></i> Gemini API Configuration</h2>
+            <div class="form-group">
+                <label class="form-label">Gemini API Key</label>
+                <div class="flex gap-2">
+                    <input type="password" id="gemini-api-key" class="form-input flex-1" placeholder="Enter your Gemini API key">
+                    <button id="toggle-api-key" class="btn btn-secondary" type="button">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <p class="text-sm text-slate-500 mt-1">
+                    Get your free API key from 
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 hover:text-blue-700 underline">
+                        Google AI Studio
+                    </a>
+                </p>
+            </div>
+            <div class="form-group">
+                <label class="form-label">AI Model</label>
+                <select id="ai-model" class="form-input" disabled>
+                    <option value="gemini-2.5-flash-lite" selected>Gemini 2.5 Flash-Lite</option>
+                </select>
+                <p class="text-sm text-slate-500 mt-1">Using Gemini 2.5 Flash-Lite for optimal performance and cost efficiency</p>
+            </div>
+            <div class="form-group">
+                <label class="form-label">AI Temperature (Creativity Level)</label>
+                <div class="flex items-center gap-4">
+                    <input type="range" id="ai-temperature" class="flex-1" min="0" max="2" step="0.1" value="1.0" style="accent-color: var(--color-blue-violet);">
+                    <span id="temperature-value" class="text-lg font-bold" style="color: var(--color-blue-violet); min-width: 3rem;">1.0</span>
+                </div>
+                <div class="flex justify-between text-xs mt-2" style="color: var(--color-text-muted);">
+                    <span>⚡ 0.0 - Precise</span>
+                    <span>🎯 1.0 - Balanced</span>
+                    <span>🎨 2.0 - Creative</span>
+                </div>
+                <p class="text-sm text-slate-500 mt-2">
+                    Lower values (0.0-0.5) make output more focused and deterministic. Higher values (1.5-2.0) make it more creative and varied. Default: 1.0
+                </p>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Custom System Prompt</label>
+                <textarea id="system-prompt" class="form-input" rows="4" placeholder="Enter custom system prompt for AI (optional)">You are an expert email marketing assistant. Help users create professional, engaging, and spam-filter-friendly emails.</textarea>
+                <p class="text-sm text-slate-500 mt-1">Customize how the AI responds to your requests</p>
+            </div>
+            <button id="save-ai-config" class="btn btn-primary">
+                <i class="fas fa-save mr-2"></i> Save Gemini Configuration
+            </button>
+        </div>
+
+        <!-- Spam Words Management Section -->
+        <div class="settings-section">
+            <h2><i class="fas fa-shield-alt mr-2"></i> Spam Words Management</h2>
+            <div class="form-group">
+                <label class="form-label">Add New Spam Word</label>
+                <div class="flex gap-2">
+                    <input type="text" id="new-spam-word" class="form-input flex-1" placeholder="Enter spam word or phrase">
+                    <select id="spam-word-category" class="form-input" style="max-width: 150px;">
+                        <option value="urgency">Urgency</option>
+                        <option value="shady">Shady</option>
+                        <option value="money">Money</option>
+                        <option value="overpromise">Overpromise</option>
+                        <option value="unnatural">Unnatural</option>
+                    </select>
+                    <button id="add-spam-word-btn" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Custom Spam Words</label>
+                <div id="custom-spam-words-list" class="max-h-96 overflow-y-auto custom-scrollbar">
+                    <!-- Custom spam words will be listed here -->
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button id="export-spam-words" class="btn btn-secondary">
+                    <i class="fas fa-download mr-2"></i> Export Words
+                </button>
+                <button id="import-spam-words" class="btn btn-secondary">
+                    <i class="fas fa-upload mr-2"></i> Import Words
+                </button>
+                <input type="file" id="import-file" accept=".json" style="display: none;">
+            </div>
+        </div>
+        
+        <!-- AI Prompt Templates Section -->
+        <div class="settings-section">
+            <h2><i class="fas fa-file-code mr-2"></i> AI Prompt Templates</h2>
+            <p class="text-sm text-slate-500 mb-3">Use placeholders like {systemPrompt}, {content}, {tone}, {terms}, {subjectLine}. These will be replaced before sending to AI.</p>
+            
+            <!-- Bulk Prompt Management -->
+            <div class="rounded-xl p-5 mb-6 border-2 shadow-lg" style="background: linear-gradient(135deg, #f5f0ff 0%, white 100%); border-color: var(--color-blue-violet);">
+                <h3 class="text-lg font-bold mb-4 flex items-center" style="color: var(--color-text);">
+                    <i class="fas fa-magic mr-2" style="color: var(--color-blue-violet);"></i> Bulk Prompt Management
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="form-label">Bulk Update All Prompts</label>
+                        <textarea id="bulk-prompt-text" class="form-input font-mono text-sm" rows="8" placeholder="Paste your prompt text here...
+
+SUPPORTED FORMATS:
+1. Single text - applies same text to all prompts
+2. Structured format with sections:
+=== SYSTEM PROMPT ===
+Your system prompt here...
+
+=== OPTIMIZE PROMPT ===
+Your optimize prompt here...
+
+=== SUGGEST PROMPT ===
+Your suggest prompt here...
+
+=== TONE PROMPT ===
+Your tone prompt here...
+
+=== SUBJECT PROMPT ===
+Your subject prompt here...
+
+=== REWRITE PROMPT ===
+Your rewrite prompt here..."></textarea>
+                        <p class="text-xs text-slate-500 mt-1">Supports both single text (applies to all) and structured format (individual prompts)</p>
+                        <button id="apply-bulk-prompts" class="btn btn-primary mt-2">
+                            <i class="fas fa-sync mr-2"></i> Apply Prompts
+                        </button>
+                    </div>
+                    <div>
+                        <label class="form-label">Import/Export Prompts</label>
+                        <div class="space-y-2">
+                            <button id="export-all-prompts" class="btn btn-secondary w-full">
+                                <i class="fas fa-download mr-2"></i> Export All Prompts
+                            </button>
+                            <button id="import-prompts" class="btn btn-secondary w-full">
+                                <i class="fas fa-upload mr-2"></i> Import Prompts
+                            </button>
+                            <input type="file" id="import-prompts-file" accept=".json" style="display: none;">
+                            <button id="copy-all-prompts" class="btn btn-secondary w-full">
+                                <i class="fas fa-copy mr-2"></i> Copy All to Clipboard
+                            </button>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2">Export/Import all prompts as JSON for backup or sharing</p>
+                    </div>
+                </div>
+            </div>
+            <details class="mb-4">
+                <summary class="cursor-pointer text-slate-700 font-medium">More info about placeholders</summary>
+                <div class="mt-2 text-sm text-slate-600 space-y-2 bg-slate-50 border border-slate-200 rounded-lg p-3">
+                    <div>
+                        <span class="font-semibold text-slate-800">{systemPrompt}</span> – The global system instruction saved in AI Configuration. Sets the assistant's role and style.
+                    </div>
+                    <div>
+                        <span class="font-semibold text-slate-800">{content}</span> – The current email HTML from the left editor. Passed as-is, including tags.
+                    </div>
+                    <div>
+                        <span class="font-semibold text-slate-800">{tone}</span> – The tone you enter when using “Adjust Tone” (e.g., professional, friendly).
+                    </div>
+                    <div>
+                        <span class="font-semibold text-slate-800">{terms}</span> – For "Rewrite Spam Words", the comma-separated words/phrases you choose, provided to AI as JSON (e.g., ["free", "limited time"]).
+                    </div>
+                    <div>
+                        <span class="font-semibold text-slate-800">{subjectLine}</span> – The current subject line from the preview section.
+                    </div>
+                    <div class="pt-2 border-t border-slate-200">
+                        <span class="font-semibold text-slate-800">Tips</span>
+                        <ul class="list-disc pl-5 mt-1 space-y-1">
+                            <li>You can reorder or wrap placeholders with additional instructions.</li>
+                            <li>Keep structure and any required output format (e.g., JSON) in your template.</li>
+                            <li>If a placeholder is missing at runtime, it will be replaced with an empty string.</li>
+                        </ul>
+                    </div>
+                </div>
+            </details>
+            <div class="form-group">
+                <label class="form-label">Optimize Content Template</label>
+                <textarea id="prompt-optimize" class="form-input font-mono text-sm" rows="5" placeholder="Enter optimize prompt template..."></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Suggestions Template</label>
+                <textarea id="prompt-suggest" class="form-input font-mono text-sm" rows="7" placeholder="Enter suggestions prompt template..."></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Adjust Tone Template</label>
+                <textarea id="prompt-tone" class="form-input font-mono text-sm" rows="5" placeholder="Enter tone prompt template..."></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Generate Subject Template</label>
+                <textarea id="prompt-subject" class="form-input font-mono text-sm" rows="5" placeholder="Enter subject prompt template..."></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Rewrite Spam Words Template</label>
+                <textarea id="prompt-rewrite" class="form-input font-mono text-sm" rows="10" placeholder="Enter rewrite spam words template..."></textarea>
+            </div>
+            <div class="flex gap-2">
+                <button id="save-prompt-templates" class="btn btn-primary">
+                    <i class="fas fa-save mr-2"></i> Save Prompt Templates
+                </button>
+                <button id="reset-prompt-templates" class="btn btn-secondary">
+                    <i class="fas fa-undo mr-2"></i> Reset to Defaults
+                </button>
+            </div>
+        </div>
+        <!-- Email Signature Section -->
+        <div class="settings-section">
+            <h2><i class="fas fa-signature mr-2"></i> Email Signature</h2>
+            <div class="form-group">
+                <label class="form-label">Signature HTML</label>
+                <textarea id="signature-html" class="form-input font-mono text-sm" rows="8" placeholder="Enter your email signature HTML..."></textarea>
+                <p class="text-sm text-slate-500 mt-1">Enter HTML for your email signature. This can be inserted into your emails.</p>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Signature Preview</label>
+                <div id="signature-preview" class="border border-slate-300 rounded-lg p-4 bg-white min-h-24">
+                    <p class="text-slate-400 italic">No signature set</p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button id="save-signature" class="btn btn-primary">
+                    <i class="fas fa-save mr-2"></i> Save Signature
+                </button>
+                <button id="clear-signature" class="btn btn-danger">
+                    <i class="fas fa-trash mr-2"></i> Clear Signature
+                </button>
+                <button id="insert-signature-to-editor" class="btn btn-secondary">
+                    <i class="fas fa-plus-circle mr-2"></i> Insert in Editor
+                </button>
+            </div>
+        </div>
+
+        <!-- Reset Settings Section -->
+        <div class="settings-section">
+            <h2><i class="fas fa-undo mr-2"></i> Reset Settings</h2>
+            <p class="text-slate-600 mb-4">Reset all settings to default values. This action cannot be undone.</p>
+            <button id="reset-all-settings" class="btn btn-danger">
+                <i class="fas fa-exclamation-triangle mr-2"></i> Reset All Settings
+            </button>
+        </div>
+    </div>
+
+    <div id="notification" class="notification" style="display: none;"></div>
+
+    <script>
+        // Settings Manager
+        const SettingsManager = {
+            init() {
+                this.loadSettings();
+                this.bindEvents();
+            },
+
+            loadSettings() {
+                // Load Gemini API Configuration
+                const geminiApiKey = localStorage.getItem('gemini-api-key') || '';
+                const systemPrompt = localStorage.getItem('system-prompt') || 'You are an expert email marketing assistant. Help users create professional, engaging, and spam-filter-friendly emails.';
+                const aiTemperature = localStorage.getItem('ai-temperature') || '1.0';
+                document.getElementById('gemini-api-key').value = geminiApiKey;
+                document.getElementById('system-prompt').value = systemPrompt;
+                document.getElementById('ai-temperature').value = aiTemperature;
+                document.getElementById('temperature-value').textContent = aiTemperature;
+
+                // Load custom spam words
+                this.loadCustomSpamWords();
+
+                // Load signature
+                const signature = localStorage.getItem('email-signature') || '';
+                document.getElementById('signature-html').value = signature;
+                this.updateSignaturePreview();
+
+                // Load AI prompt templates (with defaults)
+                const defaults = this.getDefaultPromptTemplates();
+                document.getElementById('prompt-optimize').value = localStorage.getItem('prompt-optimize') || defaults.optimize;
+                document.getElementById('prompt-suggest').value = localStorage.getItem('prompt-suggest') || defaults.suggest;
+                document.getElementById('prompt-tone').value = localStorage.getItem('prompt-tone') || defaults.tone;
+                document.getElementById('prompt-subject').value = localStorage.getItem('prompt-subject') || defaults.subject;
+                document.getElementById('prompt-rewrite').value = localStorage.getItem('prompt-rewrite') || defaults.rewrite;
+            },
+            bindEvents() {
+                // AI Configuration
+                document.getElementById('save-ai-config').addEventListener('click', () => this.saveAIConfig());
+                document.getElementById('toggle-api-key').addEventListener('click', () => this.toggleApiKeyVisibility());
+                
+                // Temperature slider update
+                document.getElementById('ai-temperature').addEventListener('input', (e) => {
+                    document.getElementById('temperature-value').textContent = e.target.value;
+                });
+                // Prompt Templates
+                document.getElementById('save-prompt-templates').addEventListener('click', () => this.savePromptTemplates());
+                document.getElementById('reset-prompt-templates').addEventListener('click', () => this.resetPromptTemplates());
+                
+                // Bulk Prompt Management
+                document.getElementById('apply-bulk-prompts').addEventListener('click', () => this.applyBulkPrompts());
+                document.getElementById('export-all-prompts').addEventListener('click', () => this.exportAllPrompts());
+                document.getElementById('import-prompts').addEventListener('click', () => document.getElementById('import-prompts-file').click());
+                document.getElementById('import-prompts-file').addEventListener('change', (e) => this.importPrompts(e));
+                document.getElementById('copy-all-prompts').addEventListener('click', () => this.copyAllPromptsToClipboard());
+
+                // Spam Words Management
+                document.getElementById('add-spam-word-btn').addEventListener('click', () => this.addCustomSpamWord());
+                document.getElementById('export-spam-words').addEventListener('click', () => this.exportSpamWords());
+                document.getElementById('import-spam-words').addEventListener('click', () => document.getElementById('import-file').click());
+                document.getElementById('import-file').addEventListener('change', (e) => this.importSpamWords(e));
+
+                // Signature Management
+                document.getElementById('signature-html').addEventListener('input', () => this.updateSignaturePreview());
+                document.getElementById('save-signature').addEventListener('click', () => this.saveSignature());
+                document.getElementById('clear-signature').addEventListener('click', () => this.clearSignature());
+                document.getElementById('insert-signature-to-editor').addEventListener('click', () => this.insertSignatureToEditor());
+
+                // Reset Settings
+                document.getElementById('reset-all-settings').addEventListener('click', () => this.resetAllSettings());
+            },
+            getDefaultPromptTemplates() {
+                return {
+                    optimize: `{systemPrompt}
+
+### GOAL
+Rewrite the user's email content to be more professional, engaging, and effective, maximizing both deliverability and conversion potential.
+
+### INSTRUCTIONS
+1.  **Analyze the original email:** Internally, evaluate the email against the AIDA framework (Attention, Interest, Desire, Action). Identify its weakest points.
+2.  **Rewrite for Impact:** Revise the email to strengthen each AIDA stage. Improve the opening hook, clarify the value proposition, create a stronger desire for the offer, and write a clearer, more compelling call-to-action.
+3.  **Ensure Professionalism:** Refine the language to be professional and persuasive. Eliminate spam trigger words and awkward phrasing.
+
+### CONSTRAINTS
+- The rewritten content must remain under 200 words.
+- Preserve the original intent and key information (company names, links, contact details).
+- Do not add any commentary or explanation.
+
+### OUTPUT FORMAT
+Return only the rewritten email content in its original HTML format.
+
+### ORIGINAL EMAIL CONTENT
+{content}`,
+                    suggest: `{systemPrompt}
+
+### GOAL
+Analyze the provided email content and subject line, then provide a concise list of the most critical, actionable suggestions for improvement.
+
+### INSTRUCTIONS
+Structure your feedback into the following four sections, using the exact markdown format shown in the example below:
+1.  **Subject Line:** Suggest one powerful alternative.
+2.  **Opening:** Recommend a change to the first sentence to make it more compelling.
+3.  **Call-to-Action (CTA):** Propose a more direct and persuasive CTA.
+4.  **Deliverability:** Identify one key change to avoid spam filters.
+
+### CONSTRAINTS
+- Your entire response must be under 150 words.
+- Be extremely specific and actionable.
+
+### EXAMPLE
+**Input Content:** "Hello, check out our new product. It's on sale for a limited time only! Click here to buy now."
+**Perfect Output:**
+**1. Subject Line:** Instead of "New Product," try "Your Exclusive First Look at [Product Name]."
+**2. Opening:** Start with the main benefit, such as "Solve [Problem] in minutes with our new..."
+**3. Call-to-Action (CTA):** Change "Click here" to a value-focused CTA like "Get Your [Product Name] Now."
+**4. Deliverability:** Avoid the phrase "limited time only," as it can trigger spam filters. Use "offer ends Friday" instead.
+
+### EMAIL TO ANALYZE
+Subject: {subjectLine}
+Content: {content}`,
+                    tone: `{systemPrompt}
+
+### GOAL
+Rewrite the provided email content to match a {tone} tone, ensuring the core message, structure, and all details (links, variables) remain intact.
+
+### CONSTRAINTS
+- Return only the rewritten email content.
+- Do not include any introductory text, explanations, or labels.
+
+### ORIGINAL CONTENT
+{content}`,
+                    subject: `{systemPrompt}
+
+### GOAL
+Generate 5 compelling, high-converting subject lines for the provided email content.
+
+### INSTRUCTIONS
+- Analyze the email's core value proposition.
+- Create subject lines that are intriguing, benefit-oriented, and personalized.
+- If the original subject uses variables like {{company_name}}, you may use them in your suggestions.
+
+### OUTPUT FORMAT
+Return only the 5 subject lines, one per line. Do not use numbers, bullets, or any extra text.
+
+### EMAIL CONTEXT
+Current Subject: {subjectLine}
+Email Content: {content}`,
+                    rewrite: `{systemPrompt}
+
+### GOAL
+Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases from the TERMS list with safer, more professional alternatives.
+
+### CRITICAL RULES
+1.  **Format:** Your output MUST be a valid JSON array of objects with the shape: [{"from": "original_word", "to": "replacement_word"}].
+2.  **Replacements:** NEVER suggest the same word as a replacement. The "to" value must be a meaningful improvement.
+3.  **Safety:** The "to" value must be a natural, non-spammy alternative.
+4.  **Precision:** Replace ONLY the provided words when they appear as standalone text. Do NOT alter HTML tags, attributes, links, or variables (e.g., {{name}}). Match case where sensible.
+5.  **Omission:** If you cannot find a genuinely better replacement for a term, OMIT it from the final JSON array.
+
+### EXAMPLE
+**TERMS:** ["free gift", "act now"]
+**Perfect Output:** [{"from":"free gift","to":"complimentary gift"},{"from":"act now","to":"get started"}]
+
+### TERMS TO REPLACE
+{terms}
+
+### EMAIL_HTML
+{content}`
+                };
+            },
+            savePromptTemplates() {
+                const ids = ['prompt-optimize','prompt-suggest','prompt-tone','prompt-subject','prompt-rewrite'];
+                ids.forEach(id => {
+                    const val = document.getElementById(id).value;
+                    if (val && val.trim()) localStorage.setItem(id, val);
+                });
+                this.showNotification('Prompt templates saved successfully!');
+            },
+            resetPromptTemplates() {
+                if (!confirm('Reset all AI prompt templates to the original defaults?')) return;
+                const defaults = this.getDefaultPromptTemplates();
+                document.getElementById('prompt-optimize').value = defaults.optimize;
+                document.getElementById('prompt-suggest').value = defaults.suggest;
+                document.getElementById('prompt-tone').value = defaults.tone;
+                document.getElementById('prompt-subject').value = defaults.subject;
+                document.getElementById('prompt-rewrite').value = defaults.rewrite;
+                // Persist defaults immediately
+                localStorage.setItem('prompt-optimize', defaults.optimize);
+                localStorage.setItem('prompt-suggest', defaults.suggest);
+                localStorage.setItem('prompt-tone', defaults.tone);
+                localStorage.setItem('prompt-subject', defaults.subject);
+                localStorage.setItem('prompt-rewrite', defaults.rewrite);
+                this.showNotification('Prompt templates reset to defaults!');
+            },
+
+            // Bulk Prompt Management Functions
+            applyBulkPrompts() {
+                const bulkText = document.getElementById('bulk-prompt-text').value.trim();
+                if (!bulkText) {
+                    this.showNotification('Please enter prompt text to apply to all templates', 'error');
+                    return;
+                }
+
+                // Check if it's structured format (contains section headers)
+                if (bulkText.includes('=== SYSTEM PROMPT ===') || bulkText.includes('=== OPTIMIZE PROMPT ===')) {
+                    this.parseAndApplyStructuredPrompts(bulkText);
+                } else {
+                    // Apply same text to all prompts
+                    if (!confirm('This will replace ALL prompt templates with the same text. Are you sure?')) {
+                        return;
+                    }
+
+                    const promptIds = ['prompt-optimize', 'prompt-suggest', 'prompt-tone', 'prompt-subject', 'prompt-rewrite'];
+                    promptIds.forEach(id => {
+                        document.getElementById(id).value = bulkText;
+                        localStorage.setItem(id, bulkText);
+                    });
+
+                    document.getElementById('bulk-prompt-text').value = '';
+                    this.showNotification('All prompt templates updated successfully!');
+                }
+            },
+
+            parseAndApplyStructuredPrompts(text) {
+                try {
+                    const prompts = this.extractPromptsFromStructuredText(text);
+                    let updatedCount = 0;
+
+                    // Update system prompt if found
+                    if (prompts.systemPrompt) {
+                        document.getElementById('system-prompt').value = prompts.systemPrompt;
+                        localStorage.setItem('system-prompt', prompts.systemPrompt);
+                        updatedCount++;
+                    }
+
+                    // Update individual prompt templates
+                    const promptMappings = {
+                        'optimize': 'prompt-optimize',
+                        'suggest': 'prompt-suggest', 
+                        'tone': 'prompt-tone',
+                        'subject': 'prompt-subject',
+                        'rewrite': 'prompt-rewrite'
+                    };
+
+                    Object.keys(promptMappings).forEach(key => {
+                        if (prompts[key]) {
+                            const elementId = promptMappings[key];
+                            document.getElementById(elementId).value = prompts[key];
+                            localStorage.setItem(elementId, prompts[key]);
+                            updatedCount++;
+                        }
+                    });
+
+                    if (updatedCount > 0) {
+                        document.getElementById('bulk-prompt-text').value = '';
+                        this.showNotification(`Successfully updated ${updatedCount} prompt template(s)!`);
+                    } else {
+                        this.showNotification('No valid prompts found in the structured format', 'error');
+                    }
+                } catch (error) {
+                    this.showNotification('Error parsing structured prompts. Please check the format.', 'error');
+                }
+            },
+
+            extractPromptsFromStructuredText(text) {
+                const prompts = {};
+                
+                // Define section patterns
+                const sections = [
+                    { key: 'systemPrompt', pattern: /=== SYSTEM PROMPT ===\s*\n(.*?)(?=\n===|$)/s },
+                    { key: 'optimize', pattern: /=== OPTIMIZE PROMPT ===\s*\n(.*?)(?=\n===|$)/s },
+                    { key: 'suggest', pattern: /=== SUGGEST PROMPT ===\s*\n(.*?)(?=\n===|$)/s },
+                    { key: 'tone', pattern: /=== TONE PROMPT ===\s*\n(.*?)(?=\n===|$)/s },
+                    { key: 'subject', pattern: /=== SUBJECT PROMPT ===\s*\n(.*?)(?=\n===|$)/s },
+                    { key: 'rewrite', pattern: /=== REWRITE PROMPT ===\s*\n(.*?)(?=\n===|$)/s }
+                ];
+
+                sections.forEach(section => {
+                    const match = text.match(section.pattern);
+                    if (match && match[1]) {
+                        prompts[section.key] = match[1].trim();
+                    }
+                });
+
+                return prompts;
+            },
+
+            exportAllPrompts() {
+                const prompts = {
+                    optimize: localStorage.getItem('prompt-optimize') || this.getDefaultPromptTemplates().optimize,
+                    suggest: localStorage.getItem('prompt-suggest') || this.getDefaultPromptTemplates().suggest,
+                    tone: localStorage.getItem('prompt-tone') || this.getDefaultPromptTemplates().tone,
+                    subject: localStorage.getItem('prompt-subject') || this.getDefaultPromptTemplates().subject,
+                    rewrite: localStorage.getItem('prompt-rewrite') || this.getDefaultPromptTemplates().rewrite,
+                    systemPrompt: localStorage.getItem('system-prompt') || '',
+                    exportDate: new Date().toISOString(),
+                    version: '1.0'
+                };
+
+                const dataStr = JSON.stringify(prompts, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `prompt-templates-${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                URL.revokeObjectURL(url);
+                this.showNotification('All prompts exported successfully!');
+            },
+
+            importPrompts(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        
+                        if (!confirm('This will replace all current prompt templates. Are you sure?')) {
+                            event.target.value = '';
+                            return;
+                        }
+
+                        // Import individual prompts
+                        if (importedData.optimize) {
+                            document.getElementById('prompt-optimize').value = importedData.optimize;
+                            localStorage.setItem('prompt-optimize', importedData.optimize);
+                        }
+                        if (importedData.suggest) {
+                            document.getElementById('prompt-suggest').value = importedData.suggest;
+                            localStorage.setItem('prompt-suggest', importedData.suggest);
+                        }
+                        if (importedData.tone) {
+                            document.getElementById('prompt-tone').value = importedData.tone;
+                            localStorage.setItem('prompt-tone', importedData.tone);
+                        }
+                        if (importedData.subject) {
+                            document.getElementById('prompt-subject').value = importedData.subject;
+                            localStorage.setItem('prompt-subject', importedData.subject);
+                        }
+                        if (importedData.rewrite) {
+                            document.getElementById('prompt-rewrite').value = importedData.rewrite;
+                            localStorage.setItem('prompt-rewrite', importedData.rewrite);
+                        }
+                        if (importedData.systemPrompt) {
+                            document.getElementById('system-prompt').value = importedData.systemPrompt;
+                            localStorage.setItem('system-prompt', importedData.systemPrompt);
+                        }
+
+                        this.showNotification('Prompts imported successfully!');
+                    } catch (error) {
+                        this.showNotification('Error importing prompts. Invalid file format.', 'error');
+                    }
+                };
+                reader.readAsText(file);
+                event.target.value = '';
+            },
+
+            copyAllPromptsToClipboard() {
+                const prompts = {
+                    optimize: localStorage.getItem('prompt-optimize') || this.getDefaultPromptTemplates().optimize,
+                    suggest: localStorage.getItem('prompt-suggest') || this.getDefaultPromptTemplates().suggest,
+                    tone: localStorage.getItem('prompt-tone') || this.getDefaultPromptTemplates().tone,
+                    subject: localStorage.getItem('prompt-subject') || this.getDefaultPromptTemplates().subject,
+                    rewrite: localStorage.getItem('prompt-rewrite') || this.getDefaultPromptTemplates().rewrite,
+                    systemPrompt: localStorage.getItem('system-prompt') || ''
+                };
+
+                const textToCopy = `=== AI PROMPT TEMPLATES ===
+Generated: ${new Date().toLocaleString()}
+
+=== SYSTEM PROMPT ===
+${prompts.systemPrompt}
+
+=== OPTIMIZE PROMPT ===
+${prompts.optimize}
+
+=== SUGGEST PROMPT ===
+${prompts.suggest}
+
+=== TONE PROMPT ===
+${prompts.tone}
+
+=== SUBJECT PROMPT ===
+${prompts.subject}
+
+=== REWRITE PROMPT ===
+${prompts.rewrite}`;
+
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    this.showNotification('All prompts copied to clipboard!');
+                }).catch(() => {
+                    this.showNotification('Failed to copy to clipboard', 'error');
+                });
+            },
+
+            saveAIConfig() {
+                const apiKey = document.getElementById('gemini-api-key').value.trim();
+                const prompt = document.getElementById('system-prompt').value;
+                const temperature = document.getElementById('ai-temperature').value;
+                
+                if (!apiKey) {
+                    this.showNotification('Please enter your Gemini API key', 'error');
+                    return;
+                }
+                
+                localStorage.setItem('gemini-api-key', apiKey);
+                localStorage.setItem('system-prompt', prompt);
+                localStorage.setItem('ai-temperature', temperature);
+                this.showNotification('Gemini configuration saved successfully!');
+            },
+
+            toggleApiKeyVisibility() {
+                const apiKeyInput = document.getElementById('gemini-api-key');
+                const toggleBtn = document.getElementById('toggle-api-key');
+                const icon = toggleBtn.querySelector('i');
+                
+                if (apiKeyInput.type === 'password') {
+                    apiKeyInput.type = 'text';
+                    icon.className = 'fas fa-eye-slash';
+                } else {
+                    apiKeyInput.type = 'password';
+                    icon.className = 'fas fa-eye';
+                }
+            },
+
+            loadCustomSpamWords() {
+                const customWords = JSON.parse(localStorage.getItem('custom-spam-words') || '[]');
+                const container = document.getElementById('custom-spam-words-list');
+                
+                if (customWords.length === 0) {
+                    container.innerHTML = '<p class="text-slate-400 italic">No custom spam words added yet</p>';
+                    return;
+                }
+
+                container.innerHTML = customWords.map((word, index) => `
+                    <div class="spam-word-item">
+                        <div>
+                            <span class="font-medium">${word.keyword}</span>
+                            <span class="spam-word-category category-${word.category} ml-2">${word.category}</span>
+                        </div>
+                        <button class="text-red-600 hover:text-red-700" onclick="SettingsManager.removeCustomSpamWord(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `).join('');
+            },
+
+            addCustomSpamWord() {
+                const word = document.getElementById('new-spam-word').value.trim();
+                const category = document.getElementById('spam-word-category').value;
+
+                if (!word) {
+                    this.showNotification('Please enter a spam word', 'error');
+                    return;
+                }
+
+                const customWords = JSON.parse(localStorage.getItem('custom-spam-words') || '[]');
+                customWords.push({
+                    keyword: word,
+                    category: category,
+                    highlight: new RegExp('\\\\b' + word.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&') + '\\\\b', 'gi').source
+                });
+
+                localStorage.setItem('custom-spam-words', JSON.stringify(customWords));
+                document.getElementById('new-spam-word').value = '';
+                this.loadCustomSpamWords();
+                this.showNotification('Spam word added successfully!');
+            },
+            removeCustomSpamWord(index) {
+                const customWords = JSON.parse(localStorage.getItem('custom-spam-words') || '[]');
+                customWords.splice(index, 1);
+                localStorage.setItem('custom-spam-words', JSON.stringify(customWords));
+                this.loadCustomSpamWords();
+                this.showNotification('Spam word removed successfully!');
+            },
+
+            exportSpamWords() {
+                const customWords = JSON.parse(localStorage.getItem('custom-spam-words') || '[]');
+                const dataStr = JSON.stringify(customWords, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'custom-spam-words.json';
+                link.click();
+                URL.revokeObjectURL(url);
+                this.showNotification('Spam words exported successfully!');
+            },
+
+            importSpamWords(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const importedWords = JSON.parse(e.target.result);
+                        if (!Array.isArray(importedWords)) {
+                            throw new Error('Invalid format');
+                        }
+                        localStorage.setItem('custom-spam-words', JSON.stringify(importedWords));
+                        this.loadCustomSpamWords();
+                        this.showNotification('Spam words imported successfully!');
+                    } catch (error) {
+                        this.showNotification('Error importing spam words. Invalid file format.', 'error');
+                    }
+                };
+                reader.readAsText(file);
+                event.target.value = '';
+            },
+
+            updateSignaturePreview() {
+                const html = document.getElementById('signature-html').value;
+                const preview = document.getElementById('signature-preview');
+                if (html.trim()) {
+                    preview.innerHTML = html;
+                } else {
+                    preview.innerHTML = '<p class="text-slate-400 italic">No signature set</p>';
+                }
+            },
+
+            saveSignature() {
+                const signature = document.getElementById('signature-html').value;
+                localStorage.setItem('email-signature', signature);
+                this.showNotification('Signature saved successfully!');
+            },
+
+            clearSignature() {
+                if (confirm('Are you sure you want to clear your signature?')) {
+                    document.getElementById('signature-html').value = '';
+                    localStorage.removeItem('email-signature');
+                    this.updateSignaturePreview();
+                    this.showNotification('Signature cleared successfully!');
+                }
+            },
+
+            insertSignatureToEditor() {
+                const signature = localStorage.getItem('email-signature');
+                if (!signature) {
+                    this.showNotification('No signature saved. Please save a signature first.', 'error');
+                    return;
+                }
+                localStorage.setItem('insert-signature-flag', 'true');
+                window.location.href = 'index.html';
+            },
+            resetAllSettings() {
+                if (confirm('Are you sure you want to reset ALL settings? This cannot be undone.')) {
+                    localStorage.removeItem('gemini-api-key');
+                    localStorage.removeItem('system-prompt');
+                    localStorage.removeItem('custom-spam-words');
+                    localStorage.removeItem('email-signature');
+                    this.loadSettings();
+                    this.showNotification('All settings have been reset to defaults!');
+                }
+            },
+
+            showNotification(message, type = 'success') {
+                const notification = document.getElementById('notification');
+                const icon = type === 'error' ? '<i class="fas fa-exclamation-circle"></i>' : '<i class="fas fa-check-circle"></i>';
+                notification.innerHTML = icon + ' ' + message;
+                notification.style.display = 'flex';
+                notification.style.backgroundColor = type === 'error' ? 'var(--color-poppy)' : 'var(--color-carrot-orange)';
+                
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 3000);
+            }
+        };
+
+        // Initialize settings manager
+        SettingsManager.init();
+    </script>
+</body>
+</html>

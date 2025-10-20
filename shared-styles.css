@@ -1,0 +1,172 @@
+/* Shared Styles for Email Template Editor */
+
+/* Custom Color Palette */
+:root {
+    --color-black: #080708;
+    --color-carrot-orange: #e89005;
+    --color-poppy: #df2935;
+    --color-blue-violet: #8338ec;
+    --color-platinum: #e6e8e6;
+    --color-platinum-dark: #d0d2d0;
+    --color-white: #ffffff;
+    --color-light-bg: #f8f9fa;
+    
+    /* Semantic colors */
+    --color-primary: var(--color-blue-violet);
+    --color-success: var(--color-carrot-orange);
+    --color-warning: var(--color-poppy);
+    --color-text: var(--color-black);
+    --color-text-muted: #4a4a4a;
+    --color-border: var(--color-platinum);
+    --color-bg: var(--color-light-bg);
+    
+    /* Transitions */
+    --transition-smooth: all 0.3s ease-in-out;
+    --transition-fast: all 0.15s ease-in-out;
+}
+
+* {
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+body { 
+    font-family: 'Inter', sans-serif; 
+    background: linear-gradient(135deg, #f8f9fa 0%, var(--color-platinum) 100%);
+    color: var(--color-text);
+}
+
+/* Button Styles */
+.btn { 
+    padding: 0.75rem 1.5rem; 
+    border-radius: 0.75rem; 
+    font-weight: 600; 
+    cursor: pointer; 
+    transition: var(--transition-fast);
+    border: none;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-primary { 
+    background: var(--color-blue-violet); 
+    color: white;
+}
+.btn-primary:hover { 
+    background: #6d2bc5;
+    box-shadow: 0 4px 12px rgba(131, 56, 236, 0.4);
+    transform: translateY(-1px);
+}
+
+.btn-secondary { 
+    background: var(--color-platinum); 
+    color: var(--color-text);
+}
+.btn-secondary:hover { 
+    background: var(--color-platinum-dark);
+    transform: translateY(-1px);
+}
+
+.btn-danger { 
+    background: var(--color-poppy); 
+    color: white;
+}
+.btn-danger:hover { 
+    background: #c71f2a;
+    box-shadow: 0 4px 12px rgba(223, 41, 53, 0.4);
+    transform: translateY(-1px);
+}
+
+.btn-success { 
+    background: var(--color-carrot-orange); 
+    color: white;
+}
+.btn-success:hover { 
+    background: #d17f04;
+    box-shadow: 0 4px 12px rgba(232, 144, 5, 0.4);
+    transform: translateY(-1px);
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--color-text-muted);
+}
+.btn-ghost:hover {
+    color: var(--color-text);
+    background: var(--color-platinum);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: var(--color-platinum);
+    border-radius: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--color-blue-violet);
+    border-radius: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--color-carrot-orange);
+}
+
+/* Card Styles */
+.card { 
+    background: white; 
+    border-radius: 1rem; 
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08); 
+    border: 2px solid var(--color-platinum);
+    transition: var(--transition-fast);
+}
+.card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+/* Form Inputs */
+.form-input { 
+    width: 100%; 
+    padding: 0.75rem 1rem; 
+    border: 2px solid var(--color-platinum); 
+    border-radius: 0.75rem;
+    transition: var(--transition-fast);
+    font-family: inherit;
+    color: var(--color-text);
+    background: white;
+}
+
+.form-input:focus { 
+    outline: none; 
+    border-color: var(--color-blue-violet);
+    box-shadow: 0 0 0 4px rgba(131, 56, 236, 0.1);
+}
+
+/* Form Label */
+.form-label { 
+    display: block; 
+    font-weight: 600; 
+    margin-bottom: 0.5rem; 
+    color: var(--color-text);
+    font-size: 0.875rem;
+}
+
+/* Better selection styling */
+::selection {
+    background: var(--color-blue-violet);
+    color: white;
+}
+
+/* Enhanced placeholder styling */
+::placeholder {
+    color: var(--color-text-muted);
+    opacity: 0.6;
+}
+
+/* Smooth page transitions */
+html {
+    scroll-behavior: smooth;
+}
+
