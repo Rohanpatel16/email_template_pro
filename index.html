@@ -711,7 +711,7 @@
                         </div>
                     </div>
                     <!-- Subject Line Input -->
-                    <div class="mb-4 mt-4">
+                    <div class="my-4">
                         <label class="text-sm font-semibold mb-2 block" style="color: var(--color-text);">Subject Line:</label>
                         <input type="text" id="subject-line-input" 
                                class="w-full p-3 text-white border-2 rounded-xl font-medium text-base transition-all focus:ring-2" 
@@ -723,11 +723,8 @@
                         </div>
                     </div>
                     
-                    <div class="mt-4 border-b-2 pb-4" style="border-color: var(--color-platinum);">
-                        <h3 class="text-xl font-bold" style="color: var(--color-text);">Regarding AI Roles at <span id="preview-company-name">Your Company</span></h3>
-                    </div>
                     <!-- Toolbar -->
-                    <div class="py-4">
+                    <div class="py-4 border-t-2" style="border-color: var(--color-platinum);">
                         <div id="toolbar" class="flex flex-wrap items-center gap-2 p-3 rounded-xl border-2" role="toolbar" aria-label="Text formatting toolbar" style="background: var(--color-light-bg); border-color: var(--color-platinum);">
                             <button class="toolbar-btn" data-command="bold" aria-label="Bold text (Ctrl+B)" title="Bold"><i class="fas fa-bold"></i></button>
                             <button class="toolbar-btn" data-command="italic" aria-label="Italic text (Ctrl+I)" title="Italic"><i class="fas fa-italic"></i></button>
@@ -1326,7 +1323,6 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                     subjectLineInput: document.getElementById('subject-line-input'),
                     subjectPreviewText: document.getElementById('subject-preview-text'),
                     recipientEmail: document.getElementById('recipient-email'),
-                    previewCompanyName: document.getElementById('preview-company-name'),
                     copyHtmlBtn: document.getElementById('copy-html-btn'),
                     copyFeedback: document.getElementById('copy-feedback'),
                     senderInitial: document.getElementById('sender-initial'),
@@ -1603,8 +1599,7 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                     template = template.replace(regex, `<span class=\"font-semibold text-blue-600\" data-variable=\"${name}\" contenteditable=\"false\">${value}</span>`);
                 });
 
-                this.nodes.recipientEmail.textContent = `${(variables.get('name') || 'recipient').split(' ')[0].toLowerCase()}@example.com`;
-                this.nodes.previewCompanyName.textContent = variables.get('company_name') || 'Your Company';
+                this.nodes.recipientEmail.textContent = `${(variables.get('full_name') || 'recipient').split(' ')[0].toLowerCase()}@example.com`;
                 
                 // Render subject line preview with variable replacement
                 this.renderSubjectLine();
@@ -1634,10 +1629,11 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
 
             renderSubjectLine() {
                 if (!this.nodes.subjectLineInput) return;
-                
+
+                const renderedSubject = this.getRenderedSubjectLine();
+
                 // Update the preview text with rendered variables
                 if (this.nodes.subjectPreviewText) {
-                    const renderedSubject = this.getRenderedSubjectLine();
                     this.nodes.subjectPreviewText.textContent = renderedSubject;
                 }
             },
@@ -1841,7 +1837,7 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
             },
             
             getDefaultHtml() {
-                return `Hello {{name}},<br><br>My name is Rohan from TIGI HR.<br><br>I noticed you're hiring for key AI roles and thought I'd share how leaders like <b>Quest Global, PubMatic, and Shadi.com</b> are accelerating their AI hiring.<br><br>Instead of spending weeks filtering through candidates who only have buzzwords on their resumes, they receive a pre-vetted shortlist of top-tier AI/ML professionals from us in just <b>48-72 hours</b>.<br><br>This allows them to focus their time on what matters: conducting high-quality technical interviews.<br><br>Would you be open to a brief chat about adopting this strategy at {{company_name}}?<br><br>For more details:<br>Our Company Profile: <a href="http://tigihr.com/company_profile" style="color: #3b82f6; text-decoration: underline;">tigihr.com/company_profile</a><br>Our Service Charges: <a href="http://tigihr.com/charges" style="color: #3b82f6; text-decoration: underline;">tigihr.com/charges</a><br><br>Best,<br><br><b>Rohan Patel | +91 7490017176</b><br><b>Business Development Manager</b><br><br><b>TIGI HR SOLUTION PVT. LTD.</b><br><b>Website:</b> <a href="http://www.tigihr.com/" style="color: #3b82f6; text-decoration: underline;">http://www.tigihr.com/</a>`;
+                return `Hello {{full_name}},<br><br>My name is Rohan from TIGI HR.<br><br>I noticed you're hiring for key AI roles and thought I'd share how leaders like <b>Quest Global, PubMatic, and Shadi.com</b> are accelerating their AI hiring.<br><br>Instead of spending weeks filtering through candidates who only have buzzwords on their resumes, they receive a pre-vetted shortlist of top-tier AI/ML professionals from us in just <b>48-72 hours</b>.<br><br>This allows them to focus their time on what matters: conducting high-quality technical interviews.<br><br>Would you be open to a brief chat about adopting this strategy at {{company_name}}?<br><br>For more details:<br>Our Company Profile: <a href="http://tigihr.com/company_profile" style="color: #3b82f6; text-decoration: underline;">tigihr.com/company_profile</a><br>Our Service Charges: <a href="http://tigihr.com/charges" style="color: #3b82f6; text-decoration: underline;">tigihr.com/charges</a><br><br>Best,<br><br><b>Rohan Patel | +91 7490017176</b><br><b>Business Development Manager</b><br><br><b>TIGI HR SOLUTION PVT. LTD.</b><br><b>Website:</b> <a href="http://www.tigihr.com/" style="color: #3b82f6; text-decoration: underline;">http://www.tigihr.com/</a>`;
             },
             
             // AI Request Counter
