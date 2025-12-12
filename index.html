@@ -9,12 +9,14 @@
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="shared-utils.js"></script>
     <script type="importmap">
-        {
-            "imports": {
-                "@google/generative-ai": "https://esm.sh/@google/generative-ai@0.21.0"
-            }
-        }
-    </script>
+{
+  "imports": {
+    "@google/generative-ai": "https://esm.sh/@google/generative-ai@0.21.0",
+    "path": "https://esm.sh/path@^0.12.7",
+    "vite": "https://esm.sh/vite@^7.2.7"
+  }
+}
+</script>
     <script type="module">
         import { GoogleGenerativeAI } from "@google/generative-ai";
         window.GoogleGenerativeAI = GoogleGenerativeAI;
@@ -751,7 +753,7 @@
                                 <input type="color" class="w-8 h-8 bg-transparent border-l-2 cursor-pointer" style="border-color: var(--color-platinum-dark);" data-command="foreColor" value="#000000" title="Text Color">
                             </div>
                             <div class="h-6 border-l-2" style="border-color: var(--color-platinum);"></div>
-                            <button class="toolbar-btn" data-command="removeFormat" aria-label="Clear formatting" title="Clear Formatting"><i class="fas fa-eraser"></i></button>
+                            <button class="toolbar-btn" data-command="removeFormat" aria-label="Clear formatting" title="Clear Formatting (Fixes pasted content)"><i class="fas fa-eraser"></i></button>
                             <div class="h-6 border-l-2" style="border-color: var(--color-platinum);"></div>
                             <button id="undo-btn" class="toolbar-btn" aria-label="Undo (Ctrl+Z)" title="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
                             <button id="redo-btn" class="toolbar-btn" aria-label="Redo (Ctrl+Y)" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
@@ -1475,6 +1477,122 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                 });
             },
             
+            cleanHTML(html) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Helper to clean attributes
+                const cleanElement = (el) => {
+                    // 1. Handle Variables (preserve them)
+                    if (el.hasAttribute('data-variable')) {
+                        const varName = el.getAttribute('data-variable');
+                        // Remove all attributes
+                        while (el.attributes.length > 0) {
+                            el.removeAttribute(el.attributes[0].name);
+                        }
+                        // Restore essential variable attributes
+                        el.setAttribute('data-variable', varName);
+                        el.className = 'font-semibold text-blue-600';
+                        el.setAttribute('contenteditable', 'false');
+                        return; // Done with this element
+                    }
+
+                    const tag = el.tagName.toLowerCase();
+
+                    // 2. Handle Anchors (Links)
+                    if (tag === 'a') {
+                        const href = el.getAttribute('href');
+                        const target = el.getAttribute('target');
+                        // Strip all attributes
+                        while (el.attributes.length > 0) {
+                            el.removeAttribute(el.attributes[0].name);
+                        }
+                        // Restore href/target
+                        if (href) el.setAttribute('href', href);
+                        if (target) el.setAttribute('target', target);
+                        return;
+                    }
+
+                    // 3. Handle Images
+                    if (tag === 'img') {
+                        const src = el.getAttribute('src');
+                        const alt = el.getAttribute('alt');
+                        const width = el.getAttribute('width');
+                        const height = el.getAttribute('height');
+                        while (el.attributes.length > 0) {
+                            el.removeAttribute(el.attributes[0].name);
+                        }
+                        if (src) el.setAttribute('src', src);
+                        if (alt) el.setAttribute('alt', alt);
+                        if (width) el.setAttribute('width', width);
+                        if (height) el.setAttribute('height', height);
+                        return;
+                    }
+
+                    // 4. Strip ALL attributes from everything else (p, div, span, etc.)
+                    // This removes style, class, id, _ngcontent, etc.
+                    while (el.attributes.length > 0) {
+                        el.removeAttribute(el.attributes[0].name);
+                    }
+                };
+
+                // Apply attribute cleaning to ALL elements
+                doc.body.querySelectorAll('*').forEach(cleanElement);
+
+                // Unwrap Logic
+                doc.body.querySelectorAll('*').forEach(el => {
+                    if (!el.parentNode) return;
+                    const tag = el.tagName.toLowerCase();
+
+                    // Remove scripts/styles
+                    if (['script', 'style', 'meta', 'link', 'title', 'xml', 'o:p'].includes(tag)) {
+                        el.remove();
+                        return;
+                    }
+
+                    // Unwrap specific tags that are just containers
+                    // span (without variable), font, ms-cmark-node, center
+                    if (['span', 'font', 'ms-cmark-node', 'center'].includes(tag)) {
+                        // Double check it's not a variable (already handled in cleanAttributes but safe to check)
+                        if (el.hasAttribute('data-variable')) return;
+
+                        // Unwrap: move children to parent
+                        const parent = el.parentNode;
+                        while (el.firstChild) {
+                            parent.insertBefore(el.firstChild, el);
+                        }
+                        parent.removeChild(el);
+                    }
+                });
+
+                // Handle Divs -> P conversion
+                // This flattens structure which is good for email
+                doc.body.querySelectorAll('div').forEach(div => {
+                    if (!div.parentNode) return;
+                    
+                    // If it contains block elements, it's a wrapper -> unwrap
+                    if (div.querySelector('p, div, h1, h2, h3, h4, h5, h6, ul, ol, table, blockquote')) {
+                        const parent = div.parentNode;
+                        while (div.firstChild) parent.insertBefore(div.firstChild, div);
+                        parent.removeChild(div);
+                    } else {
+                        // It contains only inline content -> convert to P
+                        const p = doc.createElement('p');
+                        while (div.firstChild) p.appendChild(div.firstChild);
+                        div.parentNode.replaceChild(p, div);
+                    }
+                });
+
+                // Cleanup Empty Paragraphs
+                doc.body.querySelectorAll('p').forEach(p => {
+                    if (!p.textContent.trim() && !p.querySelector('img') && !p.querySelector('br') && !p.querySelector('[data-variable]')) {
+                        p.remove();
+                    }
+                });
+
+                return doc.body.innerHTML;
+            },
+
             applyCommand(element) {
                 const { command } = element.dataset;
                 let value = element.value || null;
@@ -1483,6 +1601,38 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                     this.state.savedSelection = this.saveSelection(this.nodes.emailPreview);
                     this.showLinkModal();
                     return;
+                }
+                
+                // Custom Clear Formatting Logic
+                if (command === 'removeFormat') {
+                     this.nodes.emailPreview.focus();
+                     const selection = window.getSelection();
+                     const html = this.nodes.emailPreview.innerHTML;
+                     // Detect common messy patterns from pasted content (Angular, Word, etc.)
+                     const isMessy = html.includes('ms-cmark-node') || html.includes('_ngcontent') || html.includes('bis_skin_checked') || html.includes('mso-');
+
+                     if (selection.rangeCount > 0 && !selection.isCollapsed) {
+                         // Clean specific selection
+                         const range = selection.getRangeAt(0);
+                         const content = range.extractContents();
+                         const tempDiv = document.createElement('div');
+                         tempDiv.appendChild(content);
+                         const cleaned = this.cleanHTML(tempDiv.innerHTML);
+                         document.execCommand('insertHTML', false, cleaned);
+                     } else {
+                         // If no selection, but document is messy, prompt to clean all
+                         if (isMessy) {
+                             if (confirm('Messy formatting detected (e.g., from pasted content). Clean entire email to fix issues?')) {
+                                 const cleaned = this.cleanHTML(html);
+                                 this.nodes.emailPreview.innerHTML = cleaned;
+                             }
+                         } else {
+                             // Fallback to native behavior which usually clears style at cursor
+                             document.execCommand('removeFormat', false, value);
+                         }
+                     }
+                     this.updateSourceFromPreview();
+                     return;
                 }
                 
                 this.nodes.emailPreview.focus();
