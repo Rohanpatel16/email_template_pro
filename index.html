@@ -719,9 +719,9 @@
                                class="w-full p-3 text-white border-2 rounded-xl font-medium text-base transition-all focus:ring-2" 
                                style="background: var(--color-black); border-color: var(--color-platinum);"
                                placeholder="Enter your email subject line..."
-                               value="Regarding LinkedIn listings at {{company_name}}">
+                               value="Regarding AI Roles at {{company_name}}">
                         <div id="subject-line-preview" class="mt-2 text-sm p-3 rounded-xl border-2" style="color: var(--color-text-muted); background: var(--color-light-bg); border-color: var(--color-platinum);">
-                            <span class="font-semibold" style="color: var(--color-text);">Preview:</span> <span id="subject-preview-text">Regarding LinkedIn listings at {{company_name}}</span>
+                            <span class="font-semibold" style="color: var(--color-text);">Preview:</span> <span id="subject-preview-text">Regarding AI Roles at {{company_name}}</span>
                         </div>
                     </div>
                     
@@ -1268,9 +1268,9 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                     // Add default variables
                     this.addVariableRow('full_name', 'Rahul');
                     this.addVariableRow('company_name', 'Infosys');
-                    // removed Date
+                    this.addVariableRow('Date', '16/01/2024');
                     this.addVariableRow('other_locations', 'Delhi, Gurgaon, Mumbai, Lucknow');
-                    // removed location
+                    this.addVariableRow('location', 'Ahmedabad');
                     this.addVariableRow('clients', 'Tavant Technologies, ICICI, KENT RO, Mapro Foods, NP Digital');
                     this.nodes.htmlInput.value = this.getDefaultHtml();
                     this.nodes.htmlInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -1818,12 +1818,7 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                 const newHtml = tempDiv.innerHTML;
                 if (this.nodes.htmlInput.value !== newHtml) {
                     this.nodes.htmlInput.value = newHtml;
-                    
-                    // Safety check before calling highlightWithinTextarea
-                    if (typeof $(this.nodes.htmlInput).highlightWithinTextarea === 'function') {
-                        $(this.nodes.htmlInput).highlightWithinTextarea('update');
-                    }
-                    
+                    $(this.nodes.htmlInput).highlightWithinTextarea('update');
                     // Trigger the normal pipeline (renderPreview, counts, autosave)
                     // so that newly typed placeholders like {{name}} in the preview
                     // are immediately recognized and rendered.
@@ -1992,19 +1987,7 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
             },
             
             getDefaultHtml() {
-                return `<p>Hello {{full_name}},</p>
-<p>I'm Rohan with TIGI HR. I noticed {{company_name}} has active listings on LinkedIn.</p>
-<p>While LinkedIn is effective for visibility, features like "Easy Apply" often flood your HR team with hundreds of resumes that lack the specific niche skills you need.</p>
-<p>We serve as the filter you are missing on LinkedIn. We take that volume, vet it for technical and cultural fit, and deliver a concise shortlist of 3-5 interview-ready candidates in just 48-72 hours.</p>
-<p>We currently do this for industry leaders like {{clients}} across our network of 25+ cities, including {{other_locations}}.</p>
-<p>Is saving your team from the LinkedIn screening grind worth a brief discussion for {{company_name}}?</p>
-<p>Regards,</p>
-<p>
-    Rohan Patel | 7490017176<br>
-    Business Development Manager<br>
-    TIGI HR SOLUTION PVT. LTD.<br>
-    Website: <a href="https://tigihr.com" style="color: #0400ff; text-decoration: underline;">https://tigihr.com</a>
-</p>`;
+                return `Hello {{full_name}},<br><br>My name is Rohan from TIGI HR.<br><br>I noticed you're hiring for key AI roles and thought I'd share how leaders like <b>Quest Global, PubMatic, and Shadi.com</b> are accelerating their AI hiring.<br><br>Instead of spending weeks filtering through candidates who only have buzzwords on their resumes, they receive a pre-vetted shortlist of top-tier AI/ML professionals from us in just <b>48-72 hours</b>.<br><br>This allows them to focus their time on what matters: conducting high-quality technical interviews.<br><br>Would you be open to a brief chat about adopting this strategy at {{company_name}}?<br><br>For more details:<br>Our Company Profile: <a href="http://tigihr.com/company_profile" style="color: #3b82f6; text-decoration: underline;">tigihr.com/company_profile</a><br>Our Service Charges: <a href="http://tigihr.com/charges" style="color: #3b82f6; text-decoration: underline;">tigihr.com/charges</a><br><br>Best,<br><br><b>Rohan Patel | +91 7490017176</b><br><b>Business Development Manager</b><br><br><b>TIGI HR SOLUTION PVT. LTD.</b><br><b>Website:</b> <a href="http://www.tigihr.com/" style="color: #3b82f6; text-decoration: underline;">http://www.tigihr.com/</a>`;
             },
             
             // AI Request Counter
@@ -2149,4 +2132,1240 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                 const content = this.nodes.htmlInput.value;
 
                 if (!this.aiReady()) return;
-                this.incrementRequestCount
+                this.incrementRequestCount();
+                this.showAILoading();
+                try {
+                    const systemPrompt = localStorage.getItem('system-prompt') || '';
+                    const tpl = this.getPromptTemplate('tone');
+                    const fullPrompt = this.renderPrompt(tpl, { systemPrompt, content, tone });
+                    
+                    const model = this.initGeminiClient('tone');
+                    const result = await model.generateContent(fullPrompt);
+                    const text = this.extractAIText(result);
+                    if (!text) throw new Error('Invalid response format from AI');
+                    this.showAIResponse(text, 'tone');
+                } catch (error) {
+                    const errorMsg = error.message?.includes('API') || error.message?.includes('key')
+                        ? 'Invalid API key or quota exceeded. Please check your Gemini API key in Settings.'
+                        : error.message?.includes('network') || error.message?.includes('fetch')
+                        ? 'Network error. Please check your internet connection and try again.'
+                        : `Failed to adjust tone: ${error.message || 'Unknown error'}`;
+                    this.showAIError(errorMsg, error);
+                }
+            },
+
+            async generateSubject() {
+                const content = this.nodes.htmlInput.value;
+                if (!content.trim()) {
+                    this.showNotification('Please add some content to generate subject lines', 'warning');
+                    return;
+                }
+
+                if (!this.aiReady()) return;
+                this.incrementRequestCount();
+                this.showAILoading();
+                try {
+                    const systemPrompt = localStorage.getItem('system-prompt') || '';
+                    // Pass raw subject line with variables for AI context
+                    const currentSubject = this.nodes.subjectLineInput ? this.nodes.subjectLineInput.value : '';
+                    const numSubjects = localStorage.getItem('num-subjects') || '10';
+                    const tpl = this.getPromptTemplate('subject');
+                    const fullPrompt = this.renderPrompt(tpl, { systemPrompt, content, subjectLine: currentSubject, numSubjects });
+                    
+                    const model = this.initGeminiClient('subject');
+                    const result = await model.generateContent(fullPrompt);
+                    const text = this.extractAIText(result);
+                    if (!text) throw new Error('Invalid response format from AI');
+                    this.showAIResponse(text, 'subject');
+                } catch (error) {
+                    const errorMsg = error.message?.includes('API') || error.message?.includes('key')
+                        ? 'Invalid API key or quota exceeded. Please check your Gemini API key in Settings.'
+                        : error.message?.includes('network') || error.message?.includes('fetch')
+                        ? 'Network error. Please check your internet connection and try again.'
+                        : `Failed to generate subject lines: ${error.message || 'Unknown error'}`;
+                    this.showAIError(errorMsg, error);
+                }
+            },
+
+            showAILoading() {
+                document.getElementById('ai-loading').classList.remove('hidden');
+                document.getElementById('ai-response').classList.add('hidden');
+            },
+
+            showAIResponse(content, type = 'general') {
+                const formatters = {
+                    optimize: this.formatOptimizeResponse,
+                    suggest: this.formatSuggestionsResponse,
+                    tone: this.formatToneResponse,
+                    subject: this.formatSubjectResponse,
+                    replacement: this.formatReplacementResponse,
+                    general: this.formatGeneralResponse
+                };
+                
+                const formatter = formatters[type] || formatters.general;
+                const formattedHTML = formatter.call(this, content);
+                
+                document.getElementById('ai-loading').classList.add('hidden');
+                document.getElementById('ai-content').innerHTML = formattedHTML;
+                document.getElementById('ai-response').classList.remove('hidden');
+            },
+
+            showAIError(message, error = null) {
+                // Log error for debugging
+                if (error) {
+                    console.error('AI Error Details:', error);
+                }
+                
+                document.getElementById('ai-loading').classList.add('hidden');
+                const errorHtml = `
+                    <div class="p-4 rounded-xl border-2" style="background: rgba(223, 41, 53, 0.1); border-color: var(--color-poppy);">
+                        <div class="flex items-start">
+                            <i class="fas fa-exclamation-circle text-2xl mr-3" style="color: var(--color-poppy);"></i>
+                            <div class="flex-1">
+                                <h4 class="font-semibold mb-2" style="color: var(--color-poppy);">Error</h4>
+                                <p class="text-sm" style="color: var(--color-text);">${message}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('ai-content').innerHTML = errorHtml;
+                document.getElementById('ai-response').classList.remove('hidden');
+                this.showNotification(message, 'error');
+            },
+
+            // AI Response Formatters
+            formatOptimizeResponse(content) {
+                const optimizedContent = this.parseMarkdown(content);
+                const contentId = 'opt-' + Date.now();
+                
+                // Store content for copying
+                window.aiContentCache = window.aiContentCache || {};
+                window.aiContentCache[contentId] = content;
+                
+                return `
+                    <div class="ai-response-optimize">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-lg font-semibold text-green-800 flex items-center">
+                                <i class="fas fa-magic mr-2"></i>Optimized Content
+                            </h4>
+                            <div class="flex gap-2">
+                                <button data-action="copy" data-content-id="${contentId}" class="ai-action-btn ai-btn-copy">
+                                    <i class="fas fa-copy mr-1"></i>Copy
+                                </button>
+                                <button data-action="apply" data-content-id="${contentId}" class="ai-action-btn ai-btn-apply">
+                                    <i class="fas fa-check mr-1"></i>Apply to Editor
+                                </button>
+                            </div>
+                        </div>
+                        <div class="ai-content-card">
+                            ${optimizedContent}
+                        </div>
+                    </div>
+                `;
+            },
+
+            formatSuggestionsResponse(content) {
+                const sections = this.parseSuggestionsIntoSections(content);
+                const contentId = 'sug-' + Date.now();
+                window.aiContentCache = window.aiContentCache || {};
+                window.aiContentCache[contentId] = content;
+                
+                return `
+                    <div class="ai-response-suggestions">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-lg font-semibold text-blue-800 flex items-center">
+                                <i class="fas fa-lightbulb mr-2"></i>AI Suggestions
+                            </h4>
+                            <button data-action="copy" data-content-id="${contentId}" class="ai-action-btn ai-btn-copy">
+                                <i class="fas fa-copy mr-1"></i>Copy All
+                            </button>
+                        </div>
+                        <div class="ai-suggestions-content space-y-4">
+                            ${sections.map(section => `
+                                <div class="suggestion-section">
+                                    <h5 class="text-sm font-semibold text-blue-700 mb-2 flex items-center">
+                                        ${this.getSectionIcon(section.title)} ${section.title}
+                                    </h5>
+                                    <div class="ml-4">
+                                        ${this.parseMarkdown(section.content)}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            },
+
+            formatToneResponse(content) {
+                const adjustedContent = this.parseMarkdown(content);
+                const contentId = 'tone-' + Date.now();
+                window.aiContentCache = window.aiContentCache || {};
+                window.aiContentCache[contentId] = content;
+                
+                return `
+                    <div class="ai-response-tone">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-lg font-semibold text-purple-800 flex items-center">
+                                <i class="fas fa-palette mr-2"></i>Tone Adjusted
+                            </h4>
+                            <div class="flex gap-2">
+                                <button data-action="copy" data-content-id="${contentId}" class="ai-action-btn ai-btn-copy">
+                                    <i class="fas fa-copy mr-1"></i>Copy
+                                </button>
+                                <button data-action="apply" data-content-id="${contentId}" class="ai-action-btn ai-btn-apply">
+                                    <i class="fas fa-check mr-1"></i>Replace Content
+                                </button>
+                            </div>
+                        </div>
+                        <div class="ai-content-card">
+                            ${adjustedContent}
+                        </div>
+                    </div>
+                `;
+            },
+
+            formatSubjectResponse(content) {
+                const subjects = this.parseSubjectLines(content);
+                const contentId = 'subj-' + Date.now();
+                window.aiContentCache = window.aiContentCache || {};
+                window.aiContentCache[contentId] = subjects.join('\n');
+                
+                return `
+                    <div class="ai-response-subjects">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-lg font-semibold text-orange-800 flex items-center">
+                                <i class="fas fa-envelope mr-2"></i>Generated Subject Lines
+                            </h4>
+                            <button data-action="copy" data-content-id="${contentId}" class="ai-action-btn ai-btn-copy">
+                                <i class="fas fa-copy mr-1"></i>Copy All
+                            </button>
+                        </div>
+                        <div class="ai-subjects-list">
+                            ${subjects.map((subject, index) => {
+                                const subjectId = 'subj-' + Date.now() + '-' + index;
+                                window.aiContentCache[subjectId] = subject;
+                                return `
+                                    <div class="ai-subject-card">
+                                        <div class="ai-subject-header">
+                                            <span class="ai-subject-number">${index + 1}.</span>
+                                            <span class="ai-subject-text">${subject}</span>
+                                            <span class="ai-subject-meta">
+                                                ${subject.length} chars 
+                                                <span class="ai-spam-indicator">${this.getSpamIndicator(subject)}</span>
+                                            </span>
+                                        </div>
+                                        <div class="ai-subject-actions">
+                                            <button data-action="copy" data-content-id="${subjectId}" class="ai-action-btn ai-btn-copy-small">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                            <button data-action="use" data-content-id="${subjectId}" class="ai-action-btn ai-btn-use">
+                                                <i class="fas fa-check mr-1"></i>Use This
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            },
+
+            formatReplacementResponse(content) {
+                // Content is expected to be an object: { applied, present, skipped }
+                if (typeof content === 'string') {
+                    // Fallback for string content
+                    return this.formatGeneralResponse(content);
+                }
+                
+                const { applied, present, skipped } = content;
+                
+                if (applied === 0) {
+                    const msg = skipped && skipped.length
+                        ? 'No occurrences found to replace. The following were not found in your email.'
+                        : 'No occurrences found to replace.';
+                    return `
+                        <div class="ai-response-general">
+                            <div class="ai-content-card">
+                                <p class="text-slate-600 mb-3">${msg}</p>
+                                ${skipped && skipped.length ? `
+                                    <div class="space-y-2">
+                                        ${skipped.map(m => `
+                                            <div class="p-2 rounded" style="background: rgba(0,0,0,0.05);">
+                                                <span class="text-sm text-slate-500">${this.escapeHtml(m.from)}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                return `
+                    <div class="ai-response-general">
+                        <div class="ai-content-card">
+                            <div class="flex items-center mb-4">
+                                <i class="fas fa-check-circle text-2xl mr-3" style="color: var(--color-success);"></i>
+                                <h3 class="text-lg font-semibold">Applied ${applied} Replacement${applied === 1 ? '' : 's'}</h3>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                ${present.map(m => `
+                                    <div class="p-3 rounded-lg border-2" style="background: var(--color-light-bg); border-color: var(--color-platinum);">
+                                        <div class="flex items-start gap-3">
+                                            <div class="flex-1">
+                                                <div class="text-sm text-slate-500 mb-1">Original:</div>
+                                                <div class="p-2 rounded mb-2" style="background: rgba(223, 41, 53, 0.1); border-left: 3px solid var(--color-poppy);">
+                                                    ${this.escapeHtml(m.from)}
+                                                </div>
+                                                <div class="text-sm text-slate-500 mb-1">Replaced with:</div>
+                                                <div class="p-2 rounded" style="background: rgba(232, 144, 5, 0.1); border-left: 3px solid var(--color-success);">
+                                                    <strong>${this.escapeHtml(m.to)}</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            
+                            ${skipped && skipped.length ? `
+                                <div class="mt-4 pt-4 border-t-2" style="border-color: var(--color-platinum);">
+                                    <p class="text-sm text-slate-500 mb-2">
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        Skipped (not found in email):
+                                    </p>
+                                    <div class="space-y-1">
+                                        ${skipped.map(m => `
+                                            <div class="text-sm text-slate-400">${this.escapeHtml(m.from)}</div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            },
+            
+            formatGeneralResponse(content) {
+                const parsedContent = this.parseMarkdown(content);
+                return `
+                    <div class="ai-response-general">
+                        <div class="ai-content-card">
+                            ${parsedContent}
+                        </div>
+                    </div>
+                `;
+            },
+
+            // Helper Methods for Formatters
+            parseMarkdown(text) {
+                if (!text) return '';
+                
+                // Split into lines for better processing
+                let lines = text.split('\n');
+                let result = [];
+                let inList = false;
+                let listItems = [];
+                
+                for (let i = 0; i < lines.length; i++) {
+                    let line = lines[i].trim();
+                    
+                    // Skip empty lines
+                    if (!line) {
+                        if (inList) {
+                            result.push('<ul class="list-disc ml-6 mb-3 space-y-1">' + listItems.join('') + '</ul>');
+                            listItems = [];
+                            inList = false;
+                        }
+                        continue;
+                    }
+                    
+                    // Headers (###, ##, #)
+                    if (line.startsWith('###')) {
+                        result.push(`<h4 class="text-md font-semibold text-gray-800 mt-4 mb-2">${line.substring(3).trim()}</h4>`);
+                    }
+                    else if (line.startsWith('##')) {
+                        result.push(`<h3 class="text-lg font-semibold text-gray-800 mt-4 mb-2">${line.substring(2).trim()}</h3>`);
+                    }
+                    else if (line.startsWith('#')) {
+                        result.push(`<h2 class="text-xl font-semibold text-gray-800 mt-4 mb-3">${line.substring(1).trim()}</h2>`);
+                    }
+                    // Numbered lists
+                    else if (/^\d+\./.test(line)) {
+                        let content = line.replace(/^\d+\.\s*/, '');
+                        listItems.push(`<li class="text-gray-700">${this.formatInlineMarkdown(content)}</li>`);
+                        inList = true;
+                    }
+                    // Bullet lists
+                    else if (line.startsWith('- ') || line.startsWith('* ')) {
+                        let content = line.substring(2);
+                        listItems.push(`<li class="text-gray-700">${this.formatInlineMarkdown(content)}</li>`);
+                        inList = true;
+                    }
+                    // Regular paragraphs
+                    else {
+                        if (inList) {
+                            result.push('<ul class="list-disc ml-6 mb-3 space-y-1">' + listItems.join('') + '</ul>');
+                            listItems = [];
+                            inList = false;
+                        }
+                        result.push(`<p class="mb-3 text-gray-700 leading-relaxed">${this.formatInlineMarkdown(line)}</p>`);
+                    }
+                }
+                
+                // Close any remaining list
+                if (inList) {
+                    result.push('<ul class="list-disc ml-6 mb-3 space-y-1">' + listItems.join('') + '</ul>');
+                }
+                
+                return result.join('');
+            },
+
+            formatInlineMarkdown(text) {
+                return text
+                    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900">$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+                    .replace(/`(.*?)`/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">$1</code>');
+            },
+
+            parseSubjectLines(content) {
+                if (!content) return [];
+                
+                const lines = content.split('\n').filter(line => line.trim());
+                const subjects = [];
+                
+                lines.forEach(line => {
+                    const cleanLine = line.replace(/^\d+\.\s*/, '').replace(/^[-*]\s*/, '').trim();
+                    if (cleanLine && cleanLine.length > 5 && cleanLine.length < 100) {
+                        subjects.push(cleanLine);
+                    }
+                });
+                
+                return subjects;
+            },
+
+            getSpamIndicator(subject) {
+                const spamWords = ['free', 'urgent', 'limited', 'act now', 'click here', 'winner', 'congratulations'];
+                const lowerSubject = subject.toLowerCase();
+                const spamCount = spamWords.filter(word => lowerSubject.includes(word)).length;
+                
+                if (spamCount === 0) return '🟢 Safe';
+                if (spamCount === 1) return '🟡 Caution';
+                return '🔴 Risky';
+            },
+
+            escapeForJS(str) {
+                if (!str) return '';
+                // Remove HTML tags for JS insertion, keep text only
+                const textOnly = str.replace(/<[^>]*>/g, '');
+                return textOnly
+                    .replace(/\\/g, '\\\\')
+                    .replace(/'/g, "\\'")
+                    .replace(/"/g, '\\"')
+                    .replace(/\n/g, '\\n')
+                    .replace(/\r/g, '\\r');
+            },
+
+            // Action Button Handlers
+            copyToClipboard(text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    this.showNotification('Copied to clipboard!');
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                    this.showNotification('Failed to copy to clipboard');
+                });
+            },
+
+            applyToEditor(content) {
+                this.nodes.htmlInput.value = content;
+                this.nodes.htmlInput.dispatchEvent(new Event('input', { bubbles: true }));
+                this.showNotification('Content applied to editor!');
+            },
+
+            useSubject(subject) {
+                if (this.nodes.subjectLineInput) {
+                    // Apply the subject line directly (it should contain variables if needed)
+                    this.nodes.subjectLineInput.value = subject;
+                    // Update the preview to reflect the new subject line
+                    this.renderSubjectLine();
+                    this.saveToLocalStorage();
+                    this.showNotification('Subject line applied!');
+                } else {
+                    this.copyToClipboard(subject);
+                    this.showNotification('Subject line copied!');
+                }
+            },
+
+            parseSuggestionsIntoSections(text) {
+                // Split content by headers or numbered sections
+                const sections = [];
+                const lines = text.split('\n');
+                let currentSection = { title: 'General Suggestions', content: '' };
+                
+                lines.forEach(line => {
+                    if (line.match(/^#{1,3}\s/)) {
+                        if (currentSection.content) sections.push(currentSection);
+                        currentSection = { 
+                            title: line.replace(/^#{1,3}\s/, '').trim(), 
+                            content: '' 
+                        };
+                    } else if (line.match(/^\d+\.\s*[A-Z]/)) {
+                        if (currentSection.content) sections.push(currentSection);
+                        currentSection = { 
+                            title: line.replace(/^\d+\.\s*/, '').trim().split(':')[0], 
+                            content: line 
+                        };
+                    } else {
+                        currentSection.content += line + '\n';
+                    }
+                });
+                
+                if (currentSection.content) sections.push(currentSection);
+                return sections;
+            },
+
+            getSectionIcon(title) {
+                const iconMap = {
+                    'subject': '📧',
+                    'content': '📝',
+                    'call': '🎯',
+                    'action': '🎯',
+                    'cta': '🎯',
+                    'spam': '🛡️',
+                    'structure': '🏗️',
+                    'engagement': '💡',
+                    'tone': '🎨'
+                };
+                
+                const lowerTitle = title.toLowerCase();
+                for (const [key, icon] of Object.entries(iconMap)) {
+                    if (lowerTitle.includes(key)) return icon;
+                }
+                return '•';
+            },
+
+            // Template Management Methods
+            saveTemplate() {
+                this.showSaveTemplateModal();
+            },
+            
+            showSaveTemplateModal() {
+                const modal = document.getElementById('save-template-modal');
+                const input = document.getElementById('template-name-input');
+                input.value = '';
+                modal.classList.remove('hidden');
+                setTimeout(() => input.focus(), 100);
+            },
+            
+            hideSaveTemplateModal() {
+                document.getElementById('save-template-modal').classList.add('hidden');
+            },
+            
+            confirmSaveTemplate() {
+                const input = document.getElementById('template-name-input');
+                const templateName = input.value.trim();
+                
+                // Validate template name
+                const validation = window.EmailEditorUtils?.validateTemplateName(templateName) || 
+                    { isValid: !!templateName, error: 'Template name cannot be empty' };
+                
+                if (!validation.isValid) {
+                    this.showNotification(validation.error, 'error');
+                    input.style.borderColor = 'var(--color-poppy)';
+                    const flashDuration = window.EMAIL_EDITOR_CONSTANTS?.BORDER_FLASH_DURATION_MS || 1500;
+                    setTimeout(() => {
+                        input.style.borderColor = 'var(--color-platinum)';
+                    }, flashDuration);
+                    return;
+                }
+
+                const template = {
+                    name: templateName,
+                    html: this.nodes.htmlInput.value,
+                    subjectLine: this.nodes.subjectLineInput ? this.nodes.subjectLineInput.value : '',
+                    variables: Array.from(this.getVariables()),
+                    timestamp: new Date().toISOString()
+                };
+
+                const savedTemplates = JSON.parse(localStorage.getItem('emailTemplates') || '[]');
+                savedTemplates.push(template);
+                localStorage.setItem('emailTemplates', JSON.stringify(savedTemplates));
+
+                this.hideSaveTemplateModal();
+                this.showNotification('Template saved successfully!');
+                this.updateLastSaved();
+            },
+
+            loadTemplate() {
+                const savedTemplates = JSON.parse(localStorage.getItem('emailTemplates') || '[]');
+                if (savedTemplates.length === 0) {
+                    this.showNotification('No saved templates found', 'warning');
+                    return;
+                }
+
+                this.showLoadTemplateModal(savedTemplates);
+            },
+            
+            showLoadTemplateModal(templates) {
+                const modal = document.getElementById('load-template-modal');
+                const templateList = document.getElementById('template-list');
+                
+                templateList.innerHTML = '';
+                templates.forEach(template => {
+                    const item = document.createElement('div');
+                    item.className = 'template-item';
+                    item.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div class="flex-grow">
+                                <div class="font-semibold" style="color: var(--color-text);">${this.constructor.escapeHtml(template.name)}</div>
+                                <div class="text-xs mt-1" style="color: var(--color-text-muted);">
+                                    <i class="fas fa-clock mr-1"></i>${new Date(template.timestamp).toLocaleString()}
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right" style="color: var(--color-blue-violet);"></i>
+                        </div>
+                    `;
+                    item.addEventListener('click', () => this.loadTemplateByName(template.name));
+                    templateList.appendChild(item);
+                });
+                
+                modal.classList.remove('hidden');
+            },
+            
+            hideLoadTemplateModal() {
+                document.getElementById('load-template-modal').classList.add('hidden');
+            },
+            
+            loadTemplateByName(templateName) {
+                const savedTemplates = JSON.parse(localStorage.getItem('emailTemplates') || '[]');
+                const template = savedTemplates.find(t => t.name === templateName);
+                
+                if (!template) {
+                    this.showNotification('Template not found', 'error');
+                    return;
+                }
+
+                this.nodes.htmlInput.value = template.html;
+                if (template.subjectLine && this.nodes.subjectLineInput) {
+                    this.nodes.subjectLineInput.value = template.subjectLine;
+                }
+                this.nodes.variablesContainer.innerHTML = '';
+                
+                template.variables.forEach(([name, value]) => {
+                    this.addVariableRow(name, value);
+                });
+
+                this.nodes.htmlInput.dispatchEvent(new Event('input', { bubbles: true }));
+                this.hideLoadTemplateModal();
+                this.showNotification('Template loaded successfully!');
+            },
+
+            clearAll() {
+                if (confirm('Are you sure you want to clear all content and variables?')) {
+                    this.nodes.htmlInput.value = '';
+                    this.nodes.variablesContainer.innerHTML = '';
+                    this.nodes.htmlInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    this.showNotification('All content cleared');
+                }
+            },
+
+            // Auto-save functionality
+            initAutoSave() {
+                const AUTO_SAVE_INTERVAL = window.EMAIL_EDITOR_CONSTANTS?.AUTO_SAVE_INTERVAL_MS || 30000;
+                this.autoSaveInterval = setInterval(() => {
+                    this.saveToLocalStorage();
+                }, AUTO_SAVE_INTERVAL);
+
+                // Save on page unload
+                this.beforeUnloadHandler = () => {
+                    this.saveToLocalStorage();
+                };
+                window.addEventListener('beforeunload', this.beforeUnloadHandler);
+            },
+            
+            // Cleanup function to prevent memory leaks
+            cleanup() {
+                // Clear auto-save interval
+                if (this.autoSaveInterval) {
+                    clearInterval(this.autoSaveInterval);
+                    this.autoSaveInterval = null;
+                }
+                
+                // Remove event listener
+                if (this.beforeUnloadHandler) {
+                    window.removeEventListener('beforeunload', this.beforeUnloadHandler);
+                    this.beforeUnloadHandler = null;
+                }
+                
+                // Clear AI content cache
+                if (window.aiContentCache) {
+                    window.aiContentCache = null;
+                }
+            },
+
+            saveToLocalStorage() {
+                const data = {
+                    html: this.nodes.htmlInput.value,
+                    subjectLine: this.nodes.subjectLineInput ? this.nodes.subjectLineInput.value : '',
+                    variables: Array.from(this.getVariables()),
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem('emailEditorData', JSON.stringify(data));
+                this.updateLastSaved();
+            },
+
+            loadFromLocalStorage() {
+                // Initialize default system prompt if none exists
+                if (!localStorage.getItem('system-prompt')) {
+                    const defaultSystemPrompt = `You are an expert email marketing specialist and copywriter with a deep understanding of conversion-focused principles. Your analysis and recommendations are grounded in established frameworks like AIDA (Attention, Interest, Desire, Action) and PAS (Problem, Agitate, Solution).
+
+Your responses must always be:
+- **Expert-Level:** Provide insights that a seasoned professional would.
+- **Actionable:** Give clear, direct advice that the user can implement immediately.
+- **Concise:** Be brief and to the point. Avoid filler and unnecessary explanations.
+- **Data-Driven:** Focus on changes that demonstrably improve open rates, click-through rates, and deliverability while avoiding spam filters.`;
+                    localStorage.setItem('system-prompt', defaultSystemPrompt);
+                }
+
+                const data = JSON.parse(localStorage.getItem('emailEditorData') || 'null');
+                if (data && data.html) {
+                    this.nodes.htmlInput.value = data.html;
+                    if (data.subjectLine && this.nodes.subjectLineInput) {
+                        this.nodes.subjectLineInput.value = data.subjectLine;
+                    }
+                    this.nodes.variablesContainer.innerHTML = '';
+                    
+                    data.variables.forEach(([name, value]) => {
+                        this.addVariableRow(name, value);
+                    });
+
+                    this.nodes.htmlInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    this.showNotification('Previous work restored');
+                }
+
+                // If arriving from templates.html with a selection, load by name
+                const toLoad = localStorage.getItem('template-to-load');
+                if (toLoad) {
+                    localStorage.removeItem('template-to-load');
+                    try {
+                        const savedTemplates = JSON.parse(localStorage.getItem('emailTemplates') || '[]');
+                        const t = savedTemplates.find(x => x && x.name === toLoad);
+                        if (t) {
+                            this.nodes.htmlInput.value = t.html || '';
+                            this.nodes.variablesContainer.innerHTML = '';
+                            (t.variables || []).forEach(([name, value]) => this.addVariableRow(name, value));
+                            this.nodes.htmlInput.dispatchEvent(new Event('input', { bubbles: true }));
+                            this.showNotification(`Loaded template: ${toLoad}`);
+                        }
+                    } catch(_) {}
+                }
+            },
+
+            updateLastSaved() {
+                const now = new Date();
+                document.getElementById('last-saved').textContent = 
+                    `Last saved: ${now.toLocaleTimeString()}`;
+            },
+
+            updateWordCount() {
+                const content = this.nodes.htmlInput.value;
+                const words = content.trim() ? (content.match(/\S+/g) || []).length : 0;
+                const chars = content.length;
+                
+                document.getElementById('word-count').textContent = `Words: ${words}`;
+                document.getElementById('char-count').textContent = `Characters: ${chars}`;
+            },
+
+            showNotification(message, type = 'success') {
+                // Use shared utility if available
+                if (window.EmailEditorUtils?.showNotification) {
+                    window.EmailEditorUtils.showNotification(message, type);
+                    return;
+                }
+                
+                // Fallback to original implementation
+                const feedback = this.nodes.copyFeedback || document.getElementById('copy-feedback');
+                if (feedback) {
+                    feedback.textContent = message;
+                    feedback.classList.remove('opacity-0');
+                    const duration = window.EMAIL_EDITOR_CONSTANTS?.COPY_FEEDBACK_DURATION_MS || 2000;
+                    setTimeout(() => feedback.classList.add('opacity-0'), duration);
+                }
+            },
+
+            // Keyboard shortcuts
+            initKeyboardShortcuts() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey || e.metaKey) {
+                        switch (e.key.toLowerCase()) {
+                            case 's':
+                                e.preventDefault();
+                                this.saveTemplate();
+                                break;
+                            case 'z':
+                                if (e.shiftKey) {
+                                    e.preventDefault();
+                                    this.redo();
+                                } else {
+                                    e.preventDefault();
+                                    this.undo();
+                                }
+                                break;
+                            case 'y':
+                                e.preventDefault();
+                                this.redo();
+                                break;
+                            case 'o':
+                                e.preventDefault();
+                                this.optimizeWithAI();
+                                break;
+                            case 'shift':
+                                if (e.key === 'c' || e.key === 'C') {
+                                    e.preventDefault();
+                                    this.copyHtmlToClipboard();
+                                }
+                                break;
+                        }
+                    }
+                });
+            },
+
+            undo() {
+                document.execCommand('undo');
+            },
+
+            redo() {
+                document.execCommand('redo');
+            },
+
+            // Initialize help modal
+            initHelpModal() {
+                const helpBtn = document.getElementById('help-btn');
+                const helpModal = document.getElementById('help-modal');
+                const closeHelp = document.getElementById('close-help');
+
+                helpBtn.addEventListener('click', () => {
+                    helpModal.classList.remove('hidden');
+                });
+
+                closeHelp.addEventListener('click', () => {
+                    helpModal.classList.add('hidden');
+                });
+
+                helpModal.addEventListener('click', (e) => {
+                    if (e.target === helpModal) {
+                        helpModal.classList.add('hidden');
+                    }
+                });
+            },
+
+            // Load custom spam words from settings
+            loadCustomSpamWords() {
+                const customWords = JSON.parse(localStorage.getItem('custom-spam-words') || '[]');
+                if (customWords.length > 0 && window.spamKeywords) {
+                    // Add custom words to the global spam keywords
+                    customWords.forEach(word => {
+                        const regex = new RegExp(word.highlight || `\\b${word.keyword}\\b`, 'gi');
+                        window.spamKeywords.push({
+                            highlight: regex,
+                            keyword: word.keyword,
+                            category: word.category
+                        });
+                    });
+                    // Re-initialize the highlighter if it exists
+                    if (this.nodes.htmlInput && typeof $.fn.highlightWithinTextarea === 'function') {
+                        $(this.nodes.htmlInput).highlightWithinTextarea('destroy');
+                        $(this.nodes.htmlInput).highlightWithinTextarea({ highlight: window.spamKeywords });
+                    }
+                }
+            },
+
+            // Insert signature at cursor position
+            insertSignature() {
+                const signature = localStorage.getItem('email-signature');
+                if (!signature) {
+                    this.showNotification('No signature found in settings');
+                    return;
+                }
+                
+                const currentContent = this.nodes.htmlInput.value;
+                // Insert signature at the end with line breaks
+                this.nodes.htmlInput.value = currentContent + (currentContent ? '<br><br>' : '') + signature;
+                this.nodes.htmlInput.dispatchEvent(new Event('input', { bubbles: true }));
+                this.showNotification('Signature inserted successfully!');
+            }
+        };
+
+        // Extend EmailEditor with Spam Rewrite capability
+        EmailEditor.rewriteSpamWords = async function() {
+            const content = this.nodes.htmlInput.value;
+            if (!content.trim()) { this.showNotification('Please add some content first'); return; }
+
+            // Ensure preview is rendered and highlighted to collect current spam words
+            this.renderPreview();
+            const detected = this.collectCurrentSpamKeywords();
+            const defaultList = detected.slice(0, 30).join(', ');
+            this.showSpamRewriteModal(defaultList);
+        };
+        
+        EmailEditor.showSpamRewriteModal = function(defaultWords) {
+            const modal = document.getElementById('spam-rewrite-modal');
+            const input = document.getElementById('spam-words-input');
+            input.value = defaultWords;
+            modal.classList.remove('hidden');
+            setTimeout(() => input.focus(), 100);
+        };
+        
+        EmailEditor.hideSpamRewriteModal = function() {
+            document.getElementById('spam-rewrite-modal').classList.add('hidden');
+        };
+        
+        EmailEditor.confirmSpamRewrite = async function() {
+            const input = document.getElementById('spam-words-input');
+            const userList = input.value.trim();
+            const terms = (userList || '').split(',').map(s => s.trim()).filter(Boolean);
+            
+            if (terms.length === 0) { 
+                this.showNotification('No terms provided'); 
+                return; 
+            }
+            
+            this.hideSpamRewriteModal();
+            const content = this.nodes.htmlInput.value;
+
+            if (!this.aiReady()) return;
+            this.incrementRequestCount();
+            this.showAILoading();
+            try {
+                const systemPrompt = localStorage.getItem('system-prompt') || '';
+                const tpl = this.getPromptTemplate('rewrite');
+                const fullPrompt = this.renderPrompt(tpl, { systemPrompt, content, terms: JSON.stringify(terms) });
+                
+                const model = this.initGeminiClient('rewrite');
+                const result = await model.generateContent(fullPrompt);
+                const text = this.extractAIText(result) || '';
+                const mapping = this.parseReplacementMapping(text);
+                if (!Array.isArray(mapping) || mapping.length === 0) {
+                    throw new Error('No valid replacements returned');
+                }
+
+                // Filter mappings to only those that actually appear in the current preview (text) OR source (HTML)
+                const previewText = (this.nodes.emailPreview.textContent || '');
+                const sourceHtml = (this.nodes.htmlInput.value || '');
+                const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const toFlexibleSpace = (s) => s.replace(/\s+/g, '\\s+');
+                const toQuoteVariants = (s) => [s, s.replace(/'/g, '’'), s.replace(/’/g, "'")];
+                const appearsInPreview = (term) => {
+                    for (const variant of toQuoteVariants(term)) {
+                        const re = new RegExp(toFlexibleSpace(escapeRegex(variant)), 'i');
+                        if (re.test(previewText) || re.test(sourceHtml)) return true;
+                    }
+                    return false;
+                };
+
+                const present = mapping.filter(m => m && typeof m.from === 'string' && appearsInPreview(m.from));
+                const skipped = mapping.filter(m => m && typeof m.from === 'string' && !appearsInPreview(m.from));
+
+                let applied = present.length ? this.applyReplacementsToPreview(present) : 0;
+                if (applied === 0) {
+                    // Final fallback: attempt replacements directly on source HTML (DOM-walk to avoid attributes)
+                    const appliedToSource = this.applyReplacementsToSourceHtml(mapping);
+                    if (appliedToSource > 0) {
+                        // Source updated; trigger input pipeline to re-render preview/highlights
+                        this.nodes.htmlInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        applied = appliedToSource;
+                    }
+                }
+                
+                // Sync preview -> source and re-highlight if any applied
+                if (applied > 0) {
+                    this.updateSourceFromPreview();
+                }
+                
+                // Show formatted replacement response
+                this.showAIResponse({
+                    applied: applied,
+                    present: present,
+                    skipped: skipped
+                }, 'replacement');
+                
+                if (applied > 0) {
+                    this.showNotification('Spam words rewritten successfully');
+                }
+            } catch (error) {
+                const errorMsg = error.message?.includes('API') || error.message?.includes('key')
+                        ? 'Invalid API key or quota exceeded. Please check your Gemini API key in Settings.'
+                        : error.message?.includes('network') || error.message?.includes('fetch')
+                        ? 'Network error. Please check your internet connection and try again.'
+                        : `Failed to rewrite spam words: ${error.message || 'Unknown error'}. Try with fewer terms.`;
+                this.showAIError(errorMsg, error);
+            }
+        };
+
+        EmailEditor.collectCurrentSpamKeywords = function() {
+            const set = new Set();
+            // marks exist only in preview; ensure latest
+            // Collect the actual matched text content, not the keyword label
+            this.nodes.emailPreview.querySelectorAll('mark[data-spam-keyword]').forEach(m => {
+                const actualText = (m.textContent || '').trim();
+                if (actualText) set.add(actualText);
+            });
+            return Array.from(set);
+        };
+
+        EmailEditor.parseReplacementMapping = function(text) {
+            if (!text) return [];
+            try {
+                // strip fences if present
+                const cleaned = text.replace(/```[\s\S]*?\n?/g, '').trim();
+                const jsonStart = cleaned.indexOf('[');
+                const jsonEnd = cleaned.lastIndexOf(']');
+                if (jsonStart !== -1 && jsonEnd !== -1) {
+                    const arr = JSON.parse(cleaned.slice(jsonStart, jsonEnd + 1));
+                    return (Array.isArray(arr) ? arr : []).filter(x => x && typeof x.from === 'string' && typeof x.to === 'string');
+                }
+            } catch(_) {}
+            // fallback: line format "from -> to"
+            const lines = text.split(/\r?\n/);
+            const pairs = [];
+            lines.forEach(line => {
+                const m = line.match(/^(.+?)\s*->\s*(.+)$/);
+                if (m) pairs.push({ from: m[1].trim(), to: m[2].trim() });
+            });
+            return pairs;
+        };
+
+        EmailEditor.applyReplacementsToPreview = function(mapping) {
+            // Remove marks to avoid replacing inside <mark>
+            this.clearSpamMarks(this.nodes.emailPreview);
+
+            const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const toQuoteVariants = (s) => [
+                s,
+                s.replace(/'/g, '\u2019'),
+                s.replace(/'/g, "'")
+            ];
+            const toFlexibleSpace = (s) => s.replace(/\s+/g, '\\s+');
+            const isWordLike = (s) => /^(?:[\p{L}\p{N}_]+)$/u.test(s);
+            
+            let count = 0;
+            
+            // Strategy 1: Try whole innerHTML replacement for multi-node phrases
+            let innerHTML = this.nodes.emailPreview.innerHTML;
+            const originalInnerHTML = innerHTML;
+            
+            mapping.forEach(({ from, to }) => {
+                if (!from || typeof to !== 'string') return;
+                
+                const candidates = toQuoteVariants(from);
+                let replacedInHTML = false;
+                
+                for (const candidate of candidates) {
+                    if (isWordLike(candidate)) {
+                        // Single word: use word boundaries
+                        const pat = new RegExp(`\\b${escapeRegex(candidate)}\\b`, 'gi');
+                        const matches = innerHTML.match(pat);
+                        if (matches) {
+                            innerHTML = innerHTML.replace(pat, to);
+                            count += matches.length;
+                            replacedInHTML = true;
+                            break;
+                        }
+                    } else {
+                        // Phrase: flexible whitespace, handles multiple nodes
+                        const pat = new RegExp(toFlexibleSpace(escapeRegex(candidate)), 'gi');
+                        const matches = innerHTML.match(pat);
+                        if (matches) {
+                            innerHTML = innerHTML.replace(pat, to);
+                            count += matches.length;
+                            replacedInHTML = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // Fallback: case-insensitive literal match
+                if (!replacedInHTML) {
+                    const fallback = new RegExp(escapeRegex(from), 'gi');
+                    const matches = innerHTML.match(fallback);
+                    if (matches) {
+                        innerHTML = innerHTML.replace(fallback, to);
+                        count += matches.length;
+                    }
+                }
+            });
+            
+            // Apply the updated HTML if changes were made
+            if (innerHTML !== originalInnerHTML) {
+                this.nodes.emailPreview.innerHTML = innerHTML;
+            } else {
+                // Strategy 2: Fallback to node-by-node replacement for edge cases
+                const walker = document.createTreeWalker(this.nodes.emailPreview, NodeFilter.SHOW_TEXT, {
+                    acceptNode: (node) => {
+                        if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+                        const parent = node.parentElement;
+                        if (!parent) return NodeFilter.FILTER_REJECT;
+                        const tag = parent.tagName;
+                        if (tag === 'SCRIPT' || tag === 'STYLE') return NodeFilter.FILTER_REJECT;
+                        return NodeFilter.FILTER_ACCEPT;
+                    }
+                });
+                const nodes = [];
+                let n;
+                while ((n = walker.nextNode())) nodes.push(n);
+
+                nodes.forEach(node => {
+                    let text = node.nodeValue;
+                    mapping.forEach(({ from, to }) => {
+                        if (!from || typeof to !== 'string') return;
+                        const candidates = toQuoteVariants(from);
+                        let replacedThisTerm = false;
+                        for (const candidate of candidates) {
+                            const beforeCandidate = text;
+                            if (isWordLike(candidate)) {
+                                const pat = new RegExp(`\\b${escapeRegex(candidate)}\\b`, 'gi');
+                                text = text.replace(pat, () => { count++; replacedThisTerm = true; return to; });
+                            } else {
+                                const pat = new RegExp(toFlexibleSpace(escapeRegex(candidate)), 'gi');
+                                text = text.replace(pat, () => { count++; replacedThisTerm = true; return to; });
+                            }
+                            if (text !== beforeCandidate) break;
+                        }
+                        if (!replacedThisTerm) {
+                            const fallback = new RegExp(escapeRegex(from), 'gi');
+                            text = text.replace(fallback, () => { count++; return to; });
+                        }
+                    });
+                    node.nodeValue = text;
+                });
+            }
+
+            // Re-apply spam highlights post-change
+            this.highlightSpamInPreview();
+            return count;
+        };
+
+        // Apply replacements by parsing source HTML and updating only text nodes
+        EmailEditor.applyReplacementsToSourceHtml = function(mapping) {
+            const html = this.nodes.htmlInput.value || '';
+            if (!html || !Array.isArray(mapping) || mapping.length === 0) return 0;
+
+            const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const toQuoteVariants = (s) => [
+                s,
+                s.replace(/'/g, '\u2019'),
+                s.replace(/'/g, "'")
+            ];
+            const toFlexibleSpace = (s) => s.replace(/\s+/g, '\\s+');
+            const isWordLike = (s) => /^(?:[\p{L}\p{N}_]+)$/u.test(s);
+
+            let count = 0;
+            
+            // Strategy 1: Try direct HTML string replacement for phrases
+            let updatedHTML = html;
+            const originalHTML = html;
+            
+            mapping.forEach(({ from, to }) => {
+                if (!from || typeof to !== 'string') return;
+                
+                const candidates = toQuoteVariants(from);
+                let replacedInHTML = false;
+                
+                for (const candidate of candidates) {
+                    if (isWordLike(candidate)) {
+                        // Single word: use word boundaries
+                        const pat = new RegExp(`\\b${escapeRegex(candidate)}\\b`, 'gi');
+                        const matches = updatedHTML.match(pat);
+                        if (matches) {
+                            updatedHTML = updatedHTML.replace(pat, to);
+                            count += matches.length;
+                            replacedInHTML = true;
+                            break;
+                        }
+                    } else {
+                        // Phrase: flexible whitespace
+                        const pat = new RegExp(toFlexibleSpace(escapeRegex(candidate)), 'gi');
+                        const matches = updatedHTML.match(pat);
+                        if (matches) {
+                            updatedHTML = updatedHTML.replace(pat, to);
+                            count += matches.length;
+                            replacedInHTML = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // Fallback: case-insensitive literal match
+                if (!replacedInHTML) {
+                    const fallback = new RegExp(escapeRegex(from), 'gi');
+                    const matches = updatedHTML.match(fallback);
+                    if (matches) {
+                        updatedHTML = updatedHTML.replace(fallback, to);
+                        count += matches.length;
+                    }
+                }
+            });
+            
+            if (updatedHTML !== originalHTML) {
+                this.nodes.htmlInput.value = updatedHTML;
+                return count;
+            }
+            
+            // Strategy 2: Fallback to DOM-based replacement
+            const container = document.createElement('div');
+            container.innerHTML = html;
+
+            const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+                acceptNode: (node) => {
+                    if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+                    const parent = node.parentElement;
+                    if (!parent) return NodeFilter.FILTER_REJECT;
+                    const tag = parent.tagName;
+                    if (tag === 'SCRIPT' || tag === 'STYLE') return NodeFilter.FILTER_REJECT;
+                    return NodeFilter.FILTER_ACCEPT;
+                }
+            });
+            const nodes = [];
+            let n;
+            while ((n = walker.nextNode())) nodes.push(n);
+
+            nodes.forEach(node => {
+                let text = node.nodeValue;
+                mapping.forEach(({ from, to }) => {
+                    if (!from || typeof to !== 'string') return;
+                    const candidates = toQuoteVariants(from);
+                    let replacedThisTerm = false;
+                    for (const candidate of candidates) {
+                        const beforeCandidate = text;
+                        if (isWordLike(candidate)) {
+                            const pat = new RegExp(`\\b${escapeRegex(candidate)}\\b`, 'gi');
+                            text = text.replace(pat, () => { count++; replacedThisTerm = true; return to; });
+                        } else {
+                            const pat = new RegExp(toFlexibleSpace(escapeRegex(candidate)), 'gi');
+                            text = text.replace(pat, () => { count++; replacedThisTerm = true; return to; });
+                        }
+                        if (text !== beforeCandidate) break;
+                    }
+                    if (!replacedThisTerm) {
+                        const fallback = new RegExp(escapeRegex(from), 'gi');
+                        text = text.replace(fallback, () => { count++; return to; });
+                    }
+                });
+                node.nodeValue = text;
+            });
+
+            if (count > 0) {
+                this.nodes.htmlInput.value = container.innerHTML;
+            }
+            return count;
+        };
+
+        EmailEditor.escapeHtml = function(s) {
+            return String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+        };
+
+        EmailEditor.init();
+    });
+    </script>
+</body>
+</html>
