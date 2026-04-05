@@ -13,7 +13,8 @@ const CONSTANTS = {
         CUSTOM_SPAM_WORDS: 'custom-spam-words',
         EMAIL_SIGNATURE: 'email-signature',
         TEMPLATE_TO_LOAD: 'template-to-load',
-        INSERT_SIGNATURE_FLAG: 'insert-signature-flag'
+        INSERT_SIGNATURE_FLAG: 'insert-signature-flag',
+        AI_MODEL: 'ai-model-name'
     },
     
     // Timing

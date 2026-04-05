@@ -191,46 +191,62 @@
         /* --- STYLES FOR SPAM CHECKER INTEGRATION --- */
         .hwt-container {
             position: relative;
-            display: inline-block;
+            display: block;
             width: 100%;
             height: 100%;
             overflow: hidden;
             background-color: var(--color-black);
             border-radius: 0.75rem;
+            border: 2px solid var(--color-platinum);
+            transition: var(--transition-fast);
+        }
+        .hwt-container:focus-within {
+            border-color: var(--color-blue-violet);
+            box-shadow: 0 0 0 4px rgba(131, 56, 236, 0.1);
         }
         .hwt-backdrop {
             position: absolute;
             top: 0; right: 0; bottom: 0; left: 0;
             overflow: auto;
             pointer-events: none;
+            padding: 0; /* Reset for plugin */
+            margin: 0;
         }
         .hwt-highlights {
             white-space: pre-wrap;
             word-wrap: break-word;
             color: transparent;
             -webkit-text-fill-color: transparent;
+            font-family: inherit;
+            font-size: inherit;
+            line-height: inherit;
+            letter-spacing: inherit;
+            padding: 1rem; /* Must match textarea */
+            border: none;
+            margin: 0;
         }
         .hwt-content {
             display: block;
             position: absolute;
             top: 0; right: 0; bottom: 0; left: 0;
-            font: inherit;
-            line-height: inherit;
-            letter-spacing: inherit;
-            padding: 1rem;
-            border-radius: 0.5rem;
+            margin: 0;
         }
         .hwt-input {
             display: block;
             position: relative;
             margin: 0;
             color: var(--color-platinum);
-            background-color: transparent;
+            background-color: transparent !important;
             resize: none;
             width: 100%;
             height: 100%;
+            font-family: inherit; /* Mirror parent */
             font-size: 0.875rem;
             line-height: 1.6;
+            padding: 1rem !important; /* Fixed padding */
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
         }
         mark {
             padding: 0 2px;
@@ -413,50 +429,47 @@
             font-size: 0.75rem;
         }
         
-        .ai-suggestions-content {
-            @apply space-y-3;
+        .ai-suggestions-content > * + * {
+            margin-top: 0.75rem;
         }
         .ai-suggestions-content h4 {
-            @apply text-sm font-semibold text-gray-800 mt-3 mb-2 flex items-center;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-top: 0.75rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
         }
         .ai-suggestions-content ul {
-            @apply ml-4 space-y-1;
+            list-style-type: disc;
+            margin-left: 1.5rem;
+        }
+        .ai-suggestions-content ul > * + * {
+            margin-top: 0.5rem;
         }
         .ai-suggestions-content li {
-            @apply text-sm text-gray-700;
-        }
-        
-        .ai-response-optimize .ai-content-card {
-            border-color: var(--color-carrot-orange);
-            background: linear-gradient(135deg, #fff9f0 0%, white 100%);
-        }
-        .ai-response-suggestions .ai-content-card {
-            border-color: var(--color-blue-violet);
-            background: linear-gradient(135deg, #f5f0ff 0%, white 100%);
-        }
-        .ai-response-tone .ai-content-card {
-            border-color: var(--color-blue-violet);
-            background: linear-gradient(135deg, #f5f0ff 0%, white 100%);
-        }
-        .ai-response-subjects .ai-subject-card {
-            border-color: var(--color-carrot-orange);
-            background: linear-gradient(135deg, #fff9f0 0%, white 100%);
-        }
-        
-        .ai-suggestions-content ul {
-            @apply list-disc ml-6 space-y-2;
-        }
-        .ai-suggestions-content li {
-            @apply text-sm text-gray-700 leading-relaxed;
+            font-size: 0.875rem;
+            line-height: 1.625;
+            color: #374151;
         }
         .ai-suggestions-content strong {
-            @apply font-semibold text-gray-900;
+            font-weight: 600;
+            color: #111827;
         }
         .suggestion-section {
-            @apply bg-white border border-blue-100 rounded-lg p-4;
+            background-color: white;
+            border: 1px solid #dbeafe;
+            border-radius: 0.5rem;
+            padding: 1rem;
         }
         .ai-content-card ul {
-            @apply list-disc ml-6 space-y-1;
+            list-style-type: disc;
+            margin-left: 1.5rem;
+        }
+        .ai-content-card ul > * + * {
+            margin-top: 0.25rem;
         }
         .ai-content-card ol {
             @apply list-decimal ml-6 space-y-1;
@@ -611,7 +624,76 @@
 
     <div class="container mx-auto p-4 md:p-8">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Left Column: Input & Controls -->
+            <!-- Left Column: Visual Preview -->
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden" style="border: 2px solid var(--color-platinum);">
+                <div class="p-6">
+                    <!-- Fake Email Client UI -->
+                    <div class="flex items-center space-x-4 pb-4 border-b-2" style="border-color: var(--color-platinum);">
+                        <div class="w-12 h-12 text-white flex items-center justify-center rounded-xl font-bold text-lg shadow-md" style="background: linear-gradient(135deg, var(--color-blue-violet) 0%, var(--color-carrot-orange) 100%);">
+                            <span id="sender-initial">R</span>
+                        </div>
+                        <div>
+                            <p class="font-semibold" style="color: var(--color-text);">Rohan Patel</p>
+                            <p class="text-sm" style="color: var(--color-text-muted);">To: <span id="recipient-email">recipient@example.com</span></p>
+                        </div>
+                    </div>
+                    <!-- Subject Line Input -->
+                    <div class="my-4">
+                        <label class="text-sm font-semibold mb-2 block" style="color: var(--color-text);">Subject Line:</label>
+                        <input type="text" id="subject-line-input" 
+                               class="w-full p-3 text-white border-2 rounded-xl font-medium text-base transition-all focus:ring-2" 
+                               style="background: var(--color-black); border-color: var(--color-platinum);"
+                               placeholder="Enter your email subject line..."
+                               value="Regarding AI Roles at {{company_name}}">
+                        <div id="subject-line-preview" class="mt-2 text-sm p-3 rounded-xl border-2" style="color: var(--color-text-muted); background: var(--color-light-bg); border-color: var(--color-platinum);">
+                            <span class="font-semibold" style="color: var(--color-text);">Preview:</span> <span id="subject-preview-text">Regarding AI Roles at {{company_name}}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Toolbar -->
+                    <div class="py-4 border-t-2" style="border-color: var(--color-platinum);">
+                        <div id="toolbar" class="flex flex-wrap items-center gap-2 p-3 rounded-xl border-2" role="toolbar" aria-label="Text formatting toolbar" style="background: var(--color-light-bg); border-color: var(--color-platinum);">
+                            <button class="toolbar-btn" data-command="bold" aria-label="Bold text (Ctrl+B)" title="Bold"><i class="fas fa-bold"></i></button>
+                            <button class="toolbar-btn" data-command="italic" aria-label="Italic text (Ctrl+I)" title="Italic"><i class="fas fa-italic"></i></button>
+                            <button class="toolbar-btn" data-command="underline" aria-label="Underline text (Ctrl+U)" title="Underline"><i class="fas fa-underline"></i></button>
+                            <button class="toolbar-btn" data-command="strikeThrough" aria-label="Strikethrough text" title="Strikethrough"><i class="fas fa-strikethrough"></i></button>
+                            <button class="toolbar-btn" data-command="createLink" aria-label="Insert link" title="Insert Link"><i class="fas fa-link"></i></button>
+                            <div class="h-6 border-l-2" style="border-color: var(--color-platinum);"></div>
+                            <button class="toolbar-btn" data-command="justifyLeft" aria-label="Align left" title="Align Left"><i class="fas fa-align-left"></i></button>
+                            <button class="toolbar-btn" data-command="justifyCenter" aria-label="Align center" title="Align Center"><i class="fas fa-align-center"></i></button>
+                            <button class="toolbar-btn" data-command="justifyRight" aria-label="Align right" title="Align Right"><i class="fas fa-align-right"></i></button>
+                            <div class="h-6 border-l-2" style="border-color: var(--color-platinum);"></div>
+                            <button class="toolbar-btn" data-command="insertOrderedList" aria-label="Numbered list" title="Numbered List"><i class="fas fa-list-ol"></i></button>
+                            <button class="toolbar-btn" data-command="insertUnorderedList" aria-label="Bullet list" title="Bullet List"><i class="fas fa-list-ul"></i></button>
+                            <div class="h-6 border-l-2" style="border-color: var(--color-platinum);"></div>
+                            <select class="toolbar-select" data-command="fontName">
+                                <option value="Arial">Arial</option> <option value="Verdana">Verdana</option> <option value="Georgia">Georgia</option> <option value="Times New Roman">Times</option> <option value="Courier New">Courier</option>
+                            </select>
+                            <select class="toolbar-select" data-command="fontSize">
+                                <option value="1">Small</option> <option value="3" selected>Normal</option> <option value="5">Large</option> <option value="7">Huge</option>
+                            </select>
+                            <div class="h-6 border-l-2" style="border-color: var(--color-platinum);"></div>
+                            <div class="flex items-center rounded-lg" style="background: var(--color-platinum);">
+                                <span class="px-3" style="color: var(--color-text);"><i class="fas fa-palette"></i></span>
+                                <input type="color" class="w-8 h-8 bg-transparent border-l-2 cursor-pointer" style="border-color: var(--color-platinum-dark);" data-command="foreColor" value="#000000" title="Text Color">
+                            </div>
+                            <div class="h-6 border-l-2" style="border-color: var(--color-platinum);"></div>
+                            <button class="toolbar-btn" data-command="removeFormat" aria-label="Clear formatting" title="Clear Formatting (Fixes pasted content)"><i class="fas fa-eraser"></i></button>
+                            <div class="h-6 border-l-2" style="border-color: var(--color-platinum);"></div>
+                            <button id="undo-btn" class="toolbar-btn" aria-label="Undo (Ctrl+Z)" title="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
+                            <button id="redo-btn" class="toolbar-btn" aria-label="Redo (Ctrl+Y)" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
+                            <div class="h-6 border-l-2" style="border-color: var(--color-platinum);"></div>
+                            <button id="help-btn" class="toolbar-btn" aria-label="Show keyboard shortcuts" title="Keyboard Shortcuts"><i class="fas fa-question-circle"></i></button>
+                        </div>
+                    </div>
+                    <!-- Email Body -->
+                    <div id="email-preview" contenteditable="true" class="prose prose-sm max-w-none leading-relaxed p-5 border-2 rounded-xl transition-all" style="min-height: 300px; color: var(--color-text); border-color: var(--color-platinum); background: white;">
+                        <!-- Rendered HTML will go here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Input & Controls -->
             <div class="bg-white p-6 rounded-2xl shadow-xl flex flex-col space-y-6" style="border: 2px solid var(--color-platinum);">
                 <div>
                     <h2 class="text-xl font-semibold mb-4 text-slate-900">Define Template Variables</h2>
@@ -695,75 +777,6 @@
                             </div>
                             <div id="ai-content" class="text-sm" style="color: var(--color-text);"></div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Column: Visual Preview -->
-            <div class="bg-white rounded-2xl shadow-xl overflow-hidden" style="border: 2px solid var(--color-platinum);">
-                <div class="p-6">
-                    <!-- Fake Email Client UI -->
-                    <div class="flex items-center space-x-4 pb-4 border-b-2" style="border-color: var(--color-platinum);">
-                        <div class="w-12 h-12 text-white flex items-center justify-center rounded-xl font-bold text-lg shadow-md" style="background: linear-gradient(135deg, var(--color-blue-violet) 0%, var(--color-carrot-orange) 100%);">
-                            <span id="sender-initial">R</span>
-                        </div>
-                        <div>
-                            <p class="font-semibold" style="color: var(--color-text);">Rohan Patel</p>
-                            <p class="text-sm" style="color: var(--color-text-muted);">To: <span id="recipient-email">recipient@example.com</span></p>
-                        </div>
-                    </div>
-                    <!-- Subject Line Input -->
-                    <div class="my-4">
-                        <label class="text-sm font-semibold mb-2 block" style="color: var(--color-text);">Subject Line:</label>
-                        <input type="text" id="subject-line-input" 
-                               class="w-full p-3 text-white border-2 rounded-xl font-medium text-base transition-all focus:ring-2" 
-                               style="background: var(--color-black); border-color: var(--color-platinum);"
-                               placeholder="Enter your email subject line..."
-                               value="Regarding AI Roles at {{company_name}}">
-                        <div id="subject-line-preview" class="mt-2 text-sm p-3 rounded-xl border-2" style="color: var(--color-text-muted); background: var(--color-light-bg); border-color: var(--color-platinum);">
-                            <span class="font-semibold" style="color: var(--color-text);">Preview:</span> <span id="subject-preview-text">Regarding AI Roles at {{company_name}}</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Toolbar -->
-                    <div class="py-4 border-t-2" style="border-color: var(--color-platinum);">
-                        <div id="toolbar" class="flex flex-wrap items-center gap-2 p-3 rounded-xl border-2" role="toolbar" aria-label="Text formatting toolbar" style="background: var(--color-light-bg); border-color: var(--color-platinum);">
-                            <button class="toolbar-btn" data-command="bold" aria-label="Bold text (Ctrl+B)" title="Bold"><i class="fas fa-bold"></i></button>
-                            <button class="toolbar-btn" data-command="italic" aria-label="Italic text (Ctrl+I)" title="Italic"><i class="fas fa-italic"></i></button>
-                            <button class="toolbar-btn" data-command="underline" aria-label="Underline text (Ctrl+U)" title="Underline"><i class="fas fa-underline"></i></button>
-                            <button class="toolbar-btn" data-command="strikeThrough" aria-label="Strikethrough text" title="Strikethrough"><i class="fas fa-strikethrough"></i></button>
-                            <button class="toolbar-btn" data-command="createLink" aria-label="Insert link" title="Insert Link"><i class="fas fa-link"></i></button>
-                            <div class="h-6 border-l-2" style="border-color: var(--color-platinum);"></div>
-                            <button class="toolbar-btn" data-command="justifyLeft" aria-label="Align left" title="Align Left"><i class="fas fa-align-left"></i></button>
-                            <button class="toolbar-btn" data-command="justifyCenter" aria-label="Align center" title="Align Center"><i class="fas fa-align-center"></i></button>
-                            <button class="toolbar-btn" data-command="justifyRight" aria-label="Align right" title="Align Right"><i class="fas fa-align-right"></i></button>
-                            <div class="h-6 border-l-2" style="border-color: var(--color-platinum);"></div>
-                            <button class="toolbar-btn" data-command="insertOrderedList" aria-label="Numbered list" title="Numbered List"><i class="fas fa-list-ol"></i></button>
-                            <button class="toolbar-btn" data-command="insertUnorderedList" aria-label="Bullet list" title="Bullet List"><i class="fas fa-list-ul"></i></button>
-                            <div class="h-6 border-l-2" style="border-color: var(--color-platinum);"></div>
-                            <select class="toolbar-select" data-command="fontName">
-                                <option value="Arial">Arial</option> <option value="Verdana">Verdana</option> <option value="Georgia">Georgia</option> <option value="Times New Roman">Times</option> <option value="Courier New">Courier</option>
-                            </select>
-                            <select class="toolbar-select" data-command="fontSize">
-                                <option value="1">Small</option> <option value="3" selected>Normal</option> <option value="5">Large</option> <option value="7">Huge</option>
-                            </select>
-                            <div class="h-6 border-l-2" style="border-color: var(--color-platinum);"></div>
-                            <div class="flex items-center rounded-lg" style="background: var(--color-platinum);">
-                                <span class="px-3" style="color: var(--color-text);"><i class="fas fa-palette"></i></span>
-                                <input type="color" class="w-8 h-8 bg-transparent border-l-2 cursor-pointer" style="border-color: var(--color-platinum-dark);" data-command="foreColor" value="#000000" title="Text Color">
-                            </div>
-                            <div class="h-6 border-l-2" style="border-color: var(--color-platinum);"></div>
-                            <button class="toolbar-btn" data-command="removeFormat" aria-label="Clear formatting" title="Clear Formatting (Fixes pasted content)"><i class="fas fa-eraser"></i></button>
-                            <div class="h-6 border-l-2" style="border-color: var(--color-platinum);"></div>
-                            <button id="undo-btn" class="toolbar-btn" aria-label="Undo (Ctrl+Z)" title="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
-                            <button id="redo-btn" class="toolbar-btn" aria-label="Redo (Ctrl+Y)" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
-                            <div class="h-6 border-l-2" style="border-color: var(--color-platinum);"></div>
-                            <button id="help-btn" class="toolbar-btn" aria-label="Show keyboard shortcuts" title="Keyboard Shortcuts"><i class="fas fa-question-circle"></i></button>
-                        </div>
-                    </div>
-                    <!-- Email Body -->
-                    <div id="email-preview" contenteditable="true" class="prose prose-sm max-w-none leading-relaxed p-5 border-2 rounded-xl transition-all" style="min-height: 300px; color: var(--color-text); border-color: var(--color-platinum); background: white;">
-                        <!-- Rendered HTML will go here -->
                     </div>
                 </div>
             </div>
@@ -1037,6 +1050,12 @@
         </div>
     </div>
 
+    <!-- Notification System -->
+    <div id="notification" class="fixed top-24 right-6 text-white px-6 py-3 rounded-xl shadow-2xl hidden font-semibold flex items-center gap-2 transform transition-all duration-300 translate-x-12 opacity-0 z-[60]" style="background: var(--color-carrot-orange);">
+        <i id="notification-icon" class="fas fa-check-circle"></i>
+        <span id="notification-text"></span>
+    </div>
+
     <!-- Status Bar -->
     <div class="fixed bottom-0 left-0 right-0 text-white py-3 px-6 text-sm flex justify-between items-center z-40 backdrop-blur-lg border-t-2" style="background: linear-gradient(135deg, var(--color-black) 0%, #1a191a 100%); border-color: var(--color-platinum);">
         <div class="flex items-center space-x-6">
@@ -1207,11 +1226,14 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                     localStorage.getItem(tempKey) || localStorage.getItem('ai-temperature') || '1.0'
                 );
 
+                // Use custom model from storage if available
+                const aiModelKey = window.EMAIL_EDITOR_CONSTANTS?.STORAGE_KEYS?.AI_MODEL || 'ai-model-name';
+                const aiModel = localStorage.getItem(aiModelKey) || "gemma-3-27b-it";
+
                 return genAI.getGenerativeModel({
-                    model: "gemini-2.5-flash-lite",
+                    model: aiModel,
                     generationConfig: {
                         temperature: temperature,
-                        thinkingConfig: { thinkingBudget: 0 }
                     }
                 });
             },
@@ -1312,8 +1334,54 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                             break;
                     }
                 });
-                
+
                 this.updateWordCount();
+                
+                // Initialize spam highlights if keywords are ready
+                if (window.spamKeywords && typeof $(this.nodes.htmlInput).highlightWithinTextarea === 'function') {
+                    $(this.nodes.htmlInput).highlightWithinTextarea({ highlight: window.spamKeywords });
+                }
+            },
+
+            showNotification(message, type = 'success') {
+                const n = document.getElementById('notification');
+                const text = document.getElementById('notification-text');
+                const icon = document.getElementById('notification-icon');
+                
+                if (!n || !text) return;
+                
+                text.textContent = message;
+                
+                // Set theme and icons
+                n.classList.remove('hidden');
+                
+                // Reset classes
+                n.style.background = '';
+                if (type === 'error') {
+                    n.style.background = 'var(--color-poppy)';
+                    icon.className = 'fas fa-exclamation-circle';
+                } else if (type === 'warning') {
+                    n.style.background = 'var(--color-carrot-orange)';
+                    icon.className = 'fas fa-exclamation-triangle';
+                } else {
+                    n.style.background = 'var(--color-blue-violet)';
+                    icon.className = 'fas fa-check-circle';
+                }
+                
+                // Animate in
+                setTimeout(() => {
+                    n.classList.remove('translate-x-12', 'opacity-0');
+                    n.classList.add('translate-x-0', 'opacity-100');
+                }, 10);
+                
+                // Hide after delay
+                setTimeout(() => {
+                    n.classList.remove('translate-x-0', 'opacity-100');
+                    n.classList.add('translate-x-12', 'opacity-0');
+                    setTimeout(() => {
+                        n.classList.add('hidden');
+                    }, 300);
+                }, 3000);
             },
 
             queryNodes() {
@@ -1345,6 +1413,11 @@ Analyze the provided EMAIL_HTML and replace specific spam-trigger words/phrases 
                     debouncedRender();
                     this.updateWordCount();
                     this.saveToLocalStorage();
+                    
+                    // Update spam highlighter
+                    if (typeof $(this.nodes.htmlInput).highlightWithinTextarea === 'function') {
+                        $(this.nodes.htmlInput).highlightWithinTextarea('update');
+                    }
                 });
                 this.nodes.subjectLineInput.addEventListener('input', () => {
                     this.renderSubjectLine();

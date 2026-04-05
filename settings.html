@@ -293,10 +293,18 @@
             </div>
             <div class="form-group">
                 <label class="form-label">AI Model</label>
-                <select id="ai-model" class="form-input" disabled>
-                    <option value="gemini-2.5-flash-lite" selected>Gemini 2.5 Flash-Lite</option>
-                </select>
-                <p class="text-sm text-slate-500 mt-1">Using Gemini 2.5 Flash-Lite for optimal performance and cost efficiency</p>
+                <div class="flex gap-2">
+                    <input type="text" id="ai-model" class="form-input flex-1" list="model-suggestions" placeholder="e.g. gemini-2.5-flash-lite">
+                    <datalist id="model-suggestions">
+                        <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite (Default)</option>
+                        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                        <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                        <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash (Experimental)</option>
+                        <option value="gemma-2-27b-it">Gemma 2 27B</option>
+                        <option value="gemma-2-9b-it">Gemma 2 9B</option>
+                    </datalist>
+                </div>
+                <p class="text-sm text-slate-500 mt-1">Select a suggested model or type any custom Gemini model name (e.g., gemma-1.1-7b-it)</p>
             </div>
             <div class="form-group">
                 <label class="form-label">Temperature Mode</label>
@@ -598,6 +606,11 @@ Your rewrite prompt here..."></textarea>
                 const systemPrompt = localStorage.getItem('system-prompt') || 'You are an expert email marketing assistant. Help users create professional, engaging, and spam-filter-friendly emails.';
                 document.getElementById('gemini-api-key').value = geminiApiKey;
                 document.getElementById('system-prompt').value = systemPrompt;
+
+                // Load AI model configuration
+                const aiModelKey = window.EMAIL_EDITOR_CONSTANTS?.STORAGE_KEYS?.AI_MODEL || 'ai-model-name';
+                const aiModel = localStorage.getItem(aiModelKey) || 'gemini-2.5-flash-lite';
+                document.getElementById('ai-model').value = aiModel;
 
                 // Load number of subjects
                 const numSubjects = localStorage.getItem('num-subjects') || '10';
@@ -1030,6 +1043,11 @@ ${prompts.rewrite}`;
                 localStorage.setItem('gemini-api-key', apiKey);
                 localStorage.setItem('system-prompt', prompt);
                 
+                // Save AI Model
+                const aiModel = document.getElementById('ai-model').value.trim() || 'gemini-2.5-flash-lite';
+                const aiModelKey = window.EMAIL_EDITOR_CONSTANTS?.STORAGE_KEYS?.AI_MODEL || 'ai-model-name';
+                localStorage.setItem(aiModelKey, aiModel);
+                
                 // Save number of subjects
                 const numSubjects = document.getElementById('num-subjects').value;
                 localStorage.setItem('num-subjects', numSubjects);
@@ -1192,6 +1210,7 @@ ${prompts.rewrite}`;
                     localStorage.removeItem('custom-spam-words');
                     localStorage.removeItem('email-signature');
                     localStorage.removeItem('num-subjects');
+                    localStorage.removeItem(window.EMAIL_EDITOR_CONSTANTS?.STORAGE_KEYS?.AI_MODEL || 'ai-model-name');
                     
                     // Reset temperature settings
                     localStorage.removeItem('ai-temperature-mode');
@@ -1207,13 +1226,32 @@ ${prompts.rewrite}`;
 
             showNotification(message, type = 'success') {
                 const notification = document.getElementById('notification');
+                if (!notification) return;
+                
                 const icon = type === 'error' ? '<i class="fas fa-exclamation-circle"></i>' : '<i class="fas fa-check-circle"></i>';
                 notification.innerHTML = icon + ' ' + message;
+                
+                // Modern styling consistent with index.html
+                notification.className = "fixed top-24 right-6 text-white px-6 py-3 rounded-xl shadow-2xl font-semibold flex items-center gap-2 transform transition-all duration-300 z-[60]";
                 notification.style.display = 'flex';
-                notification.style.backgroundColor = type === 'error' ? 'var(--color-poppy)' : 'var(--color-carrot-orange)';
+                
+                if (type === 'error') {
+                    notification.style.background = 'var(--color-poppy)';
+                } else {
+                    notification.style.background = 'var(--color-carrot-orange)';
+                }
+                
+                // Animate in
+                notification.style.opacity = '1';
+                notification.style.transform = 'translateX(0)';
                 
                 setTimeout(() => {
-                    notification.style.display = 'none';
+                    // Animate out
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateX(12px)';
+                    setTimeout(() => {
+                        notification.style.display = 'none';
+                    }, 300);
                 }, 3000);
             }
         };
@@ -1221,5 +1259,7 @@ ${prompts.rewrite}`;
         // Initialize settings manager
         SettingsManager.init();
     </script>
+
+    <div id="notification" class="fixed top-24 right-6 text-white px-6 py-3 rounded-xl shadow-2xl hidden font-semibold flex items-center gap-2 transition-all duration-300 z-[60]"></div>
 </body>
 </html>

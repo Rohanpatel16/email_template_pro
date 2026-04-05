@@ -253,19 +253,20 @@
                     return;
                 }
                 this.empty.classList.add('hidden');
-                this.container.innerHTML = templates.map((t, idx) => this.templateCard(t, idx)).join('');
+                this.container.innerHTML = templates.map((t) => this.templateCard(t)).join('');
                 // attach handlers
                 this.container.querySelectorAll('[data-action="use"]').forEach(btn => btn.addEventListener('click', (e) => this.useTemplate(e)));
                 this.container.querySelectorAll('[data-action="preview"]').forEach(btn => btn.addEventListener('click', (e) => this.previewTemplate(e)));
                 this.container.querySelectorAll('[data-action="delete"]').forEach(btn => btn.addEventListener('click', (e) => this.deleteTemplate(e)));
                 this.container.querySelectorAll('[data-action="export"]').forEach(btn => btn.addEventListener('click', (e) => this.exportTemplate(e)));
             },
-            templateCard(t, idx) {
-                const name = this.escape(t.name || `Template ${idx+1}`);
+            templateCard(t) {
+                const name = this.escape(t.name || `Template`);
                 const time = t.timestamp ? new Date(t.timestamp).toLocaleString() : '';
                 const snippet = (t.html || '').replace(/<[^>]*>/g, '').slice(0, 100);
+                const id = t.timestamp; // Use timestamp as unique ID
                 return `
-                <div class="card p-5 flex flex-col">
+                <div class="card p-5 flex flex-col" data-id="${id}">
                     <div class="mb-3">
                         <div class="font-bold text-lg mb-1" style="color: var(--color-text);">${name}</div>
                         <div class="text-xs flex items-center" style="color: var(--color-text-muted);">
@@ -277,7 +278,7 @@
                         <button class="btn btn-primary flex-1" data-action="use" data-name="${this.escapeAttr(t.name)}">
                             <i class="fas fa-check mr-1"></i>Use
                         </button>
-                        <button class="btn btn-secondary flex-1" data-action="preview" data-index="${idx}">
+                        <button class="btn btn-secondary flex-1" data-action="preview" data-id="${id}">
                             <i class="fas fa-eye mr-1"></i>Preview
                         </button>
                     </div>
@@ -286,10 +287,10 @@
                             <i class="fas fa-tag mr-1"></i>${(t.variables || []).length} Variables
                         </div>
                         <div class="flex gap-2">
-                            <button class="btn btn-export" data-action="export" data-index="${idx}">
+                            <button class="btn btn-export" data-action="export" data-id="${id}">
                                 <i class="fas fa-download"></i>
                             </button>
-                            <button class="btn btn-danger" data-action="delete" data-index="${idx}">
+                            <button class="btn btn-danger" data-action="delete" data-id="${id}">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -305,9 +306,9 @@
                 window.location.href = 'index.html';
             },
             previewTemplate(e) {
-                const idx = Number(e.currentTarget.getAttribute('data-index'));
+                const id = e.currentTarget.getAttribute('data-id');
                 const templates = this.getTemplates();
-                const t = templates[idx];
+                const t = templates.find(t => t.timestamp === id);
                 if (!t) return;
                 this.previewTitle.textContent = t.name || 'Template Preview';
                 this.previewHtml.textContent = t.html || '';
@@ -315,10 +316,11 @@
                 this.toggleModal(true);
             },
             deleteTemplate(e) {
-                const idx = Number(e.currentTarget.getAttribute('data-index'));
+                const id = e.currentTarget.getAttribute('data-id');
                 const templates = this.getTemplates();
+                const idx = templates.findIndex(t => t.timestamp === id);
+                if (idx === -1) return;
                 const t = templates[idx];
-                if (!t) return;
                 if (!confirm(`Delete template "${t.name}"?`)) return;
                 templates.splice(idx, 1);
                 this.saveTemplates(templates);
@@ -326,9 +328,9 @@
                 this.notify('Template deleted');
             },
             exportTemplate(e) {
-                const idx = Number(e.currentTarget.getAttribute('data-index'));
+                const id = e.currentTarget.getAttribute('data-id');
                 const templates = this.getTemplates();
-                const t = templates[idx];
+                const t = templates.find(t => t.timestamp === id);
                 if (!t) return;
                 const dataStr = JSON.stringify(t, null, 2);
                 const blob = new Blob([dataStr], { type: 'application/json' });
@@ -344,16 +346,38 @@
                 if (show) this.modal.classList.remove('hidden');
                 else this.modal.classList.add('hidden');
             },
-            notify(msg) {
+            notify(msg, type = 'success') {
                 const n = document.getElementById('notification');
                 const text = document.getElementById('notification-text');
+                
+                if (!n || !text) return;
+                
                 text.textContent = msg;
+                n.className = "fixed top-24 right-6 text-white px-6 py-3 rounded-xl shadow-2xl font-semibold flex items-center gap-2 transform transition-all duration-300 z-[60]";
+                
+                if (type === 'error') {
+                    n.style.background = 'var(--color-poppy)';
+                } else {
+                    n.style.background = 'var(--color-blue-violet)';
+                }
+                
                 n.classList.remove('hidden');
-                setTimeout(() => n.classList.add('hidden'), 2500);
+                void n.offsetWidth;
+                n.style.opacity = '1';
+                n.style.transform = 'translateX(0)';
+                
+                setTimeout(() => {
+                    n.style.opacity = '0';
+                    n.style.transform = 'translateX(12px)';
+                    setTimeout(() => n.classList.add('hidden'), 300);
+                }, 3000);
             },
             escape(s) { return String(s || '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); },
             escapeAttr(s) { return String(s || '').replace(/["'<>&]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
         };
+
+        // Export to window for inline onclick handlers
+        window.TemplatesPage = TemplatesPage;
 
         document.addEventListener('DOMContentLoaded', () => TemplatesPage.init());
     </script>
