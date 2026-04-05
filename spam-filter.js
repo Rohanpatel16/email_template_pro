@@ -4,20 +4,11 @@
 $(function () {
 // Full keyword list extracted from mailmeteor.com/assets/js/spam-checker.js
     const spamKeywords = [
-        // Recruitment / Business specific additions
-        { highlight: /\bshortlist\b/gi, keyword: "shortlist", category: "urgency" },
-        { highlight: /\bpre-vetted\b/gi, keyword: "pre-vetted", category: "overpromise" },
-        { highlight: /\badopting this strategy\b/gi, keyword: "adopting this strategy", category: "shady" },
-        { highlight: /\burgent hiring\b/gi, keyword: "urgent hiring", category: "urgency" },
-        { highlight: /\bshort shortlist\b/gi, keyword: "short shortlist", category: "overpromise" },
-        { highlight: /\b48-72 hours\b/gi, keyword: "48-72 hours", category: "urgency" },
-        
-        // Standard keywords
-        { highlight: /[\$£€¥]{2,}/gi, keyword: "$$$", category: "money" },
-        { highlight: /[\$£€¥]{2,}/gi, keyword: "€€€", category: "money" },
-        { highlight: /[\$£€¥]{2,}/gi, keyword: "£££", category: "money" },
-        { highlight: /\b50% off\b/gi, keyword: "50% off", category: "money" },
-        { highlight: /\ba few bob\b/gi, keyword: "A few bob", category: "money" },
+{ highlight: /[\$Â£â‚¬Â¥]{2,}/gi, keyword: "$$$", category: "money" },
+{ highlight: /[\$Â£â‚¬Â¥]{2,}/gi, keyword: "€€€", category: "money" },
+{ highlight: /[\$Â£â‚¬Â¥]{2,}/gi, keyword: "£££", category: "money" },
+{ highlight: /\b50% off\b/gi, keyword: "50% off", category: "money" },
+{ highlight: /\ba few bob\b/gi, keyword: "A few bob", category: "money" },
 { highlight: /\baccept cash cards\b/gi, keyword: "Accept cash cards", category: "money" },
 { highlight: /\baccept credit cards\b/gi, keyword: "Accept credit cards", category: "money" },
 { highlight: /\baffordable\b/gi, keyword: "Affordable", category: "money" },
